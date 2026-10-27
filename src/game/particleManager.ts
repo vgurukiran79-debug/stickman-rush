@@ -16,7 +16,7 @@ export class ParticleManager {
   }
 
   public addCoinBurst(x: number, y: number) {
-    // 12-16 sparkling gold particles
+    // Sparkling gold particles
     for (let i = 0; i < 14; i++) {
       const angle = (Math.PI * 2 * i) / 14 + (Math.random() - 0.5) * 0.4;
       const speed = 70 + Math.random() * 110;
@@ -47,19 +47,65 @@ export class ParticleManager {
   }
 
   public addSlideSparks(x: number, y: number) {
-    // 2-3 sparks and smoke behind feet
-    for (let i = 0; i < 2; i++) {
+    // Sparks and cyan/violet smoke behind feet
+    for (let i = 0; i < 3; i++) {
       this.particles.push({
-        x: x - 10 + Math.random() * 8,
+        x: x - 12 + Math.random() * 8,
         y: y - 2 + Math.random() * 4,
-        vx: -140 - Math.random() * 90,
-        vy: -20 - Math.random() * 40,
-        life: 0.2 + Math.random() * 0.15,
-        maxLife: 0.35,
+        vx: -150 - Math.random() * 90,
+        vy: -25 - Math.random() * 45,
+        life: 0.22 + Math.random() * 0.15,
+        maxLife: 0.37,
         size: 2 + Math.random() * 2.5,
         color: Math.random() > 0.5 ? '#A78BFA' : '#06B6D4',
         alpha: 1,
         shape: 'spark',
+      });
+    }
+  }
+
+  public addLandingShockwave(x: number, y: number) {
+    // Expanding neon cyan shockwave rings on ground
+    this.particles.push({
+      x,
+      y,
+      vx: 0,
+      vy: 0,
+      life: 0.26,
+      maxLife: 0.26,
+      size: 4,
+      color: '#06B6D4',
+      alpha: 1,
+      shape: 'ring',
+    });
+
+    this.particles.push({
+      x,
+      y,
+      vx: 0,
+      vy: 0,
+      life: 0.22,
+      maxLife: 0.22,
+      size: 2,
+      color: '#A78BFA',
+      alpha: 0.9,
+      shape: 'ring',
+    });
+
+    // Lateral ground puffs
+    for (let i = 0; i < 4; i++) {
+      const dir = i % 2 === 0 ? -1 : 1;
+      this.particles.push({
+        x: x + dir * 6,
+        y: y - 2,
+        vx: dir * (50 + Math.random() * 50),
+        vy: -15 - Math.random() * 20,
+        life: 0.2,
+        maxLife: 0.2,
+        size: 2.5 + Math.random() * 2,
+        color: '#38BDF8',
+        alpha: 0.7,
+        shape: 'smoke',
       });
     }
   }
@@ -80,7 +126,6 @@ export class ParticleManager {
   }
 
   public addCrashBurst(x: number, y: number) {
-    // Big dramatic impact burst
     for (let i = 0; i < 28; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 100 + Math.random() * 220;
@@ -126,6 +171,8 @@ export class ParticleManager {
         p.vy += 320 * dt; // gravity on sparks
       } else if (p.shape === 'smoke') {
         p.size += 6 * dt; // smoke expands
+      } else if (p.shape === 'ring') {
+        p.size += 90 * dt; // shockwave expands outward
       }
     }
 
@@ -148,19 +195,29 @@ export class ParticleManager {
     for (const p of this.particles) {
       ctx.save();
       ctx.globalAlpha = p.alpha;
-      ctx.fillStyle = p.color;
 
       if (p.shape === 'spark') {
+        ctx.fillStyle = p.color;
         ctx.shadowColor = p.color;
         ctx.shadowBlur = 6;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
+      } else if (p.shape === 'ring') {
+        ctx.strokeStyle = p.color;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = p.color;
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, p.size, p.size * 0.35, 0, 0, Math.PI * 2);
+        ctx.stroke();
       } else if (p.shape === 'smoke') {
+        ctx.fillStyle = p.color;
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
       } else {
+        ctx.fillStyle = p.color;
         ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
       }
       ctx.restore();

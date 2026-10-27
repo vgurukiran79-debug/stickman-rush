@@ -265,6 +265,12 @@ export class GameEngine {
     // Update player
     this.player.update(dt, this.currentSpeed);
 
+    // Landing shockwave & ground dust
+    if (this.player.justLanded) {
+      this.particleManager.addLandingShockwave(this.player.x, this.player.y);
+      this.player.justLanded = false;
+    }
+
     // Slide particle trail
     if (this.player.isSliding) {
       this.particleManager.addSlideSparks(this.player.x, this.player.y);
@@ -324,8 +330,8 @@ export class GameEngine {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 
-    // Draw parallax background, stars, moon, skyline and ground
-    this.worldRenderer.beginFrame(ctx, this.totalElapsed);
+    // Draw parallax background, stars, moon, skyline and ground with distance progression
+    this.worldRenderer.beginFrame(ctx, this.totalElapsed, this.distance);
 
     // Draw obstacles
     this.obstacleManager.draw(ctx);

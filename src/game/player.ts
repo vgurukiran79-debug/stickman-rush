@@ -29,6 +29,7 @@ export class Player {
   public slideKeyHeld: boolean = false;
   public slideElapsedTime: number = 0;
   public isCrashed: boolean = false;
+  public justLanded: boolean = false;
 
   private jumpBufferTimer: number = 0;
   private coyoteTimer: number = 0;
@@ -38,6 +39,10 @@ export class Player {
   private crashRotation: number = 0;
   private crashVx: number = 0;
   private crashVy: number = 0;
+
+  // Futuristic motion trail ghosts
+  private trailGhosts: { x: number; y: number; pose: PlayerPose; runCycle: number; alpha: number }[] = [];
+  private trailTimer: number = 0;
 
   constructor() {
     this.reset();
@@ -52,6 +57,7 @@ export class Player {
     this.slideKeyHeld = false;
     this.slideElapsedTime = 0;
     this.isCrashed = false;
+    this.justLanded = false;
     this.jumpBufferTimer = 0;
     this.coyoteTimer = 0;
     this.hasJumpedInAir = false;
@@ -59,6 +65,8 @@ export class Player {
     this.crashRotation = 0;
     this.crashVx = 0;
     this.crashVy = 0;
+    this.trailGhosts = [];
+    this.trailTimer = 0;
   }
 
   public jump(): boolean {
@@ -183,6 +191,9 @@ export class Player {
       if (this.y >= GROUND_Y) {
         this.y = GROUND_Y;
         this.vy = 0;
+        if (!this.isGrounded) {
+          this.justLanded = true;
+        }
         this.isGrounded = true;
         this.hasJumpedInAir = false;
 
@@ -197,6 +208,33 @@ export class Player {
     // Update running animation cycle
     if (this.isGrounded && !this.isSliding) {
       this.runCycle += dt * (speed / 32);
+    }
+
+    // Update motion trail ghosts
+    for (let i = this.trailGhosts.length - 1; i >= 0; i--) {
+      const g = this.trailGhosts[i];
+      g.alpha -= dt * 2.8;
+      g.x -= speed * dt * 0.22;
+      if (g.alpha <= 0) {
+        this.trailGhosts.splice(i, 1);
+      }
+    }
+
+    if (!this.isCrashed && (speed > 420 || !this.isGrounded || this.isSliding)) {
+      this.trailTimer += dt;
+      if (this.trailTimer >= 0.055) {
+        this.trailTimer = 0;
+        this.trailGhosts.push({
+          x: this.x - 10,
+          y: this.y,
+          pose: this.getPose(),
+          runCycle: this.runCycle,
+          alpha: 0.26,
+        });
+        if (this.trailGhosts.length > 3) {
+          this.trailGhosts.shift();
+        }
+      }
     }
   }
 
@@ -238,12 +276,61 @@ export class Player {
       return;
     }
 
+    // Draw futuristic motion trail ghosts
+    for (const ghost of this.trailGhosts) {
+      this.drawTrailGhost(ctx, ghost);
+    }
+
     if (this.isSliding) {
       this.drawSliding(ctx);
     } else if (!this.isGrounded) {
       this.drawJumping(ctx);
     } else {
       this.drawRunning(ctx);
+    }
+
+    ctx.restore();
+  }
+
+  private drawTrailGhost(ctx: CanvasRenderingContext2D, ghost: { x: number; y: number; pose: PlayerPose; runCycle: number; alpha: number }) {
+    ctx.save();
+    ctx.globalAlpha = ghost.alpha;
+    ctx.strokeStyle = '#06B6D4';
+    ctx.fillStyle = '#22D3EE';
+    ctx.shadowColor = '#06B6D4';
+    ctx.shadowBlur = 6;
+    ctx.lineWidth = 2.5;
+
+    if (ghost.pose === 'SLIDING') {
+      const ground = ghost.y;
+      ctx.beginPath();
+      ctx.arc(ghost.x - 18, ground - 14, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(ghost.x - 10, ground - 11);
+      ctx.lineTo(ghost.x + 8, ground - 8);
+      ctx.lineTo(ghost.x + 28, ground - 3);
+      ctx.stroke();
+    } else if (ghost.pose === 'JUMPING' || ghost.pose === 'FALLING') {
+      ctx.beginPath();
+      ctx.arc(ghost.x + 3, ghost.y - 58, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(ghost.x + 1, ghost.y - 48);
+      ctx.lineTo(ghost.x, ghost.y - 26);
+      ctx.lineTo(ghost.x + 10, ghost.y - 12);
+      ctx.stroke();
+    } else {
+      const bob = Math.abs(Math.sin(ghost.runCycle)) * 3;
+      const baseY = ghost.y - bob;
+      ctx.beginPath();
+      ctx.arc(ghost.x + 3, baseY - 62, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(ghost.x + 1, baseY - 52);
+      ctx.lineTo(ghost.x - 2, baseY - 28);
+      ctx.lineTo(ghost.x + 8, baseY - 8);
+      ctx.stroke();
     }
 
     ctx.restore();

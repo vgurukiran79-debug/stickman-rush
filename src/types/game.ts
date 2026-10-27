@@ -53,7 +53,7 @@ export interface Particle {
   size: number;
   color: string;
   alpha: number;
-  shape?: 'circle' | 'spark' | 'smoke' | 'bone';
+  shape?: 'circle' | 'spark' | 'smoke' | 'bone' | 'ring';
 }
 
 export interface FloatingText {
