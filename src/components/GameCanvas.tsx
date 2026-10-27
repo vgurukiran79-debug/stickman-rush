@@ -4,6 +4,7 @@
  */
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { ArrowUp, ArrowDown } from 'lucide-react';
 import { VIRTUAL_WIDTH, VIRTUAL_HEIGHT } from '../game/constants.ts';
 import { GameEngine } from '../game/gameEngine.ts';
 import { GameState, GameStats } from '../types/game.ts';
@@ -20,7 +21,7 @@ export const GameCanvas: React.FC = () => {
     coinsCollected: 0,
     bestDistance: 0,
     totalCoins: 0,
-    speed: 380,
+    speed: 340,
     isNewBest: false,
   });
   const [soundEnabled, setSoundEnabled] = useState<boolean>(soundManager.getSoundEnabled());
@@ -136,13 +137,13 @@ export const GameCanvas: React.FC = () => {
         const deltaY = e.changedTouches[0].clientY - touchStartY;
         const deltaX = e.changedTouches[0].clientX - touchStartX;
 
-        // If strong vertical swipe
+        // Vertical swipe detection
         if (Math.abs(deltaY) > 30 && Math.abs(deltaY) > Math.abs(deltaX)) {
           if (deltaY < 0) {
             engine.jump();
           } else {
             engine.slide();
-            setTimeout(() => engine.stopSlide(), 400);
+            setTimeout(() => engine.stopSlide(), 500);
           }
         }
       }
@@ -196,31 +197,97 @@ export const GameCanvas: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center bg-slate-950 select-none overflow-hidden p-0 sm:p-2">
-      {/* 16:9 Aspect Ratio Game Container */}
-      <div className="relative w-full max-w-[1280px] aspect-[16/9] max-h-[100vh] sm:rounded-2xl overflow-hidden shadow-2xl shadow-cyan-950/20 border border-slate-800/80 bg-slate-950">
-        {/* HTML5 Game Canvas */}
-        <canvas
-          ref={canvasRef}
-          className="w-full h-full block object-contain select-none"
-        />
+    <div className="relative w-full h-[100dvh] flex flex-col justify-between items-center bg-slate-950 select-none overflow-hidden touch-none p-0 sm:p-2">
+      {/* Centered Game Viewport Container */}
+      <div className="flex-1 w-full flex items-center justify-center relative overflow-hidden">
+        {/* 16:9 Aspect Ratio Arcade Display Frame */}
+        <div className="relative w-full max-w-[1280px] aspect-[16/9] max-h-full sm:rounded-2xl overflow-hidden shadow-2xl shadow-cyan-950/20 border-0 sm:border border-slate-800/80 bg-slate-950 flex items-center justify-center">
+          {/* HTML5 Game Canvas */}
+          <canvas
+            ref={canvasRef}
+            className="w-full h-full block object-contain select-none touch-none"
+          />
 
-        {/* UI Overlay */}
-        <UIOverlay
-          state={gameState}
-          stats={stats}
-          soundEnabled={soundEnabled}
-          onStart={handleStart}
-          onResume={handleResume}
-          onRestart={handleRestart}
-          onMainMenu={handleMainMenu}
-          onPause={handlePause}
-          onJump={handleJump}
-          onSlide={handleSlide}
-          onStopSlide={handleStopSlide}
-          onToggleSound={handleToggleSound}
-        />
+          {/* In-Game HUD and Modals Overlay */}
+          <UIOverlay
+            state={gameState}
+            stats={stats}
+            soundEnabled={soundEnabled}
+            onStart={handleStart}
+            onResume={handleResume}
+            onRestart={handleRestart}
+            onMainMenu={handleMainMenu}
+            onPause={handlePause}
+            onJump={handleJump}
+            onSlide={handleSlide}
+            onStopSlide={handleStopSlide}
+            onToggleSound={handleToggleSound}
+          />
+        </div>
       </div>
+
+      {/* Dedicated Mobile Bottom Arcade Touch Controls (active during run) */}
+      {gameState === 'PLAYING' && (
+        <div className="w-full max-w-lg px-3 py-2 sm:py-3 pb-3 sm:pb-5 flex items-center justify-between gap-3 sm:gap-6 z-20 shrink-0 touch-none">
+          {/* SLIDE Touch Button (Left Thumb) */}
+          <button
+            type="button"
+            onTouchStart={(e) => {
+              e.preventDefault();
+              handleSlide();
+            }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              handleStopSlide();
+            }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              handleSlide();
+            }}
+            onMouseUp={(e) => {
+              e.preventDefault();
+              handleStopSlide();
+            }}
+            className="flex-1 h-14 sm:h-20 bg-gradient-to-b from-purple-900/90 to-purple-950/95 active:from-purple-600 active:to-purple-700 border-2 border-purple-500/70 active:border-purple-300 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-purple-950/50 transition-transform active:scale-95 touch-none select-none cursor-pointer"
+            aria-label="Slide button"
+          >
+            <ArrowDown className="w-6 h-6 sm:w-7 sm:h-7 text-purple-200 stroke-[2.5]" />
+            <div className="flex flex-col items-start leading-none">
+              <span className="text-xs sm:text-sm font-bold font-display tracking-wider text-purple-100 uppercase">
+                SLIDE
+              </span>
+              <span className="text-[10px] text-purple-300/70 font-medium hidden sm:inline">
+                Hold to glide
+              </span>
+            </div>
+          </button>
+
+          {/* JUMP Touch Button (Right Thumb) */}
+          <button
+            type="button"
+            onTouchStart={(e) => {
+              e.preventDefault();
+              handleJump();
+            }}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              handleJump();
+            }}
+            className="flex-1 h-14 sm:h-20 bg-gradient-to-b from-cyan-900/90 to-cyan-950/95 active:from-cyan-500 active:to-cyan-600 border-2 border-cyan-500/70 active:border-cyan-300 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-cyan-950/50 transition-transform active:scale-95 touch-none select-none cursor-pointer"
+            aria-label="Jump button"
+          >
+            <ArrowUp className="w-6 h-6 sm:w-7 sm:h-7 text-cyan-200 stroke-[2.5]" />
+            <div className="flex flex-col items-start leading-none">
+              <span className="text-xs sm:text-sm font-bold font-display tracking-wider text-cyan-100 uppercase">
+                JUMP
+              </span>
+              <span className="text-[10px] text-cyan-300/70 font-medium hidden sm:inline">
+                Tap to leap
+              </span>
+            </div>
+          </button>
+        </div>
+      )}
     </div>
   );
 };

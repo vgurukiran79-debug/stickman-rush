@@ -15,8 +15,9 @@ import {
   ArrowDown,
   Trophy,
   Coins,
-  Gauge,
   Sparkles,
+  Smartphone,
+  Keyboard,
 } from 'lucide-react';
 import { GameState, GameStats } from '../types/game.ts';
 import { soundManager } from '../audio/soundManager.ts';
@@ -51,33 +52,33 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
   onToggleSound,
 }) => {
   return (
-    <div className="absolute inset-0 pointer-events-none select-none flex flex-col justify-between overflow-hidden">
-      {/* Top HUD (during active play or paused) */}
+    <>
+      {/* 1. TOP IN-GAME HUD (Visible during active play or pause) */}
       {(state === 'PLAYING' || state === 'PAUSED') && (
-        <header className="pointer-events-auto flex items-center justify-between px-4 sm:px-6 py-3 bg-gradient-to-b from-slate-950/80 via-slate-950/40 to-transparent">
+        <header className="absolute top-0 left-0 right-0 pointer-events-auto flex items-center justify-between px-3 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-b from-slate-950/90 via-slate-950/50 to-transparent z-20">
           {/* Distance and Coins */}
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <span className="text-xs uppercase tracking-wider text-cyan-400 font-semibold font-display">
+          <div className="flex items-center gap-4 sm:gap-6">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="text-[10px] sm:text-xs uppercase tracking-wider text-cyan-400 font-semibold font-display">
                 Distance
               </span>
-              <span className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-white tracking-tight">
+              <span className="text-lg sm:text-2xl font-bold font-mono tabular-nums text-white tracking-tight">
                 {stats.distance}
-                <span className="text-xs text-slate-400 font-normal ml-0.5">m</span>
+                <span className="text-[10px] sm:text-xs text-slate-400 font-normal ml-0.5">m</span>
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
               <div className="w-5 h-5 rounded-full bg-amber-400/20 flex items-center justify-center text-amber-400 border border-amber-400/40">
-                <Coins className="w-3.5 h-3.5" />
+                <Coins className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
               </div>
-              <span className="text-lg sm:text-xl font-bold font-mono tabular-nums text-amber-300">
+              <span className="text-base sm:text-xl font-bold font-mono tabular-nums text-amber-300">
                 {stats.coinsCollected}
               </span>
             </div>
 
             {stats.bestDistance > 0 && (
-              <div className="hidden md:flex items-center gap-1.5 text-xs text-slate-400">
+              <div className="hidden sm:flex items-center gap-1.5 text-xs text-slate-400">
                 <Trophy className="w-3.5 h-3.5 text-amber-400/80" />
                 <span>Best {stats.bestDistance}m</span>
               </div>
@@ -89,7 +90,7 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
             <button
               onClick={onToggleSound}
               aria-label={soundEnabled ? 'Mute audio' : 'Unmute audio'}
-              className="p-2 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-white transition-colors cursor-pointer"
+              className="p-1.5 sm:p-2 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-white transition-colors cursor-pointer"
             >
               {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4 text-red-400" />}
             </button>
@@ -98,7 +99,7 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
               <button
                 onClick={onPause}
                 aria-label="Pause game"
-                className="p-2 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                className="p-1.5 sm:p-2 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-white transition-colors cursor-pointer"
               >
                 <Pause className="w-4 h-4" />
               </button>
@@ -107,93 +108,96 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
         </header>
       )}
 
-      {/* Center Modals based on GameState */}
+      {/* 2. RESPONSIVE FULL-SCREEN MODALS (Start Screen, Pause Screen, Game Over Screen) */}
+      {/* START SCREEN / LANDING PAGE */}
       {state === 'START' && (
-        <div className="pointer-events-auto my-auto flex flex-col items-center justify-center px-4 text-center z-20">
-          <div className="max-w-md w-full bg-slate-900/90 backdrop-blur-md p-6 sm:p-8 rounded-2xl border border-slate-700/60 shadow-2xl shadow-cyan-950/40">
+        <div className="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+          <div className="relative w-full max-w-md my-auto bg-slate-900/95 border border-slate-700/80 rounded-2xl p-4 sm:p-6 shadow-2xl shadow-cyan-950/30 text-center animate-in fade-in zoom-in-95 duration-200">
             {/* Title & Tagline */}
-            <div className="mb-6">
-              <h1 className="text-4xl sm:text-5xl font-black font-display tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-violet-400 drop-shadow-sm uppercase">
+            <div className="mb-4 sm:mb-5">
+              <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-cyan-400/10 border border-cyan-400/30 text-cyan-300 text-[11px] font-semibold mb-2">
+                <Sparkles className="w-3 h-3" />
+                CYBERPUNK RUNNER
+              </div>
+              <h1 className="text-3xl sm:text-5xl font-black font-display tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-violet-400 drop-shadow uppercase leading-tight">
                 Stickman Rush
               </h1>
-              <p className="mt-2 text-sm text-slate-300 font-medium">
-                Jump over ground hazards · Slide under hanging beams · Grab gold coins
+              <p className="mt-1.5 text-xs sm:text-sm text-slate-300 font-medium">
+                Dodge hazards · Grab gold coins · Survive the neon city
               </p>
             </div>
 
-            {/* High Score & Coins Stats */}
-            <div className="grid grid-cols-2 gap-3 mb-6 p-3 bg-slate-950/60 rounded-xl border border-slate-800">
-              <div className="flex flex-col items-center justify-center p-2">
-                <span className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+            {/* High Score & Total Coins Strip */}
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-5 p-2.5 sm:p-3 bg-slate-950/60 rounded-xl border border-slate-800">
+              <div className="flex flex-col items-center justify-center p-1.5">
+                <span className="flex items-center gap-1 text-[11px] sm:text-xs text-slate-400 font-medium">
                   <Trophy className="w-3.5 h-3.5 text-amber-400" />
-                  Best Distance
+                  Best Score
                 </span>
-                <span className="text-xl font-bold font-mono tabular-nums text-white mt-0.5">
+                <span className="text-lg sm:text-xl font-bold font-mono tabular-nums text-white mt-0.5">
                   {stats.bestDistance} <span className="text-xs text-slate-400 font-normal">m</span>
                 </span>
               </div>
-              <div className="flex flex-col items-center justify-center p-2 border-l border-slate-800">
-                <span className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+              <div className="flex flex-col items-center justify-center p-1.5 border-l border-slate-800">
+                <span className="flex items-center gap-1 text-[11px] sm:text-xs text-slate-400 font-medium">
                   <Coins className="w-3.5 h-3.5 text-amber-400" />
-                  Total Coins
+                  Coin Bank
                 </span>
-                <span className="text-xl font-bold font-mono tabular-nums text-amber-300 mt-0.5">
+                <span className="text-lg sm:text-xl font-bold font-mono tabular-nums text-amber-300 mt-0.5">
                   {stats.totalCoins}
                 </span>
               </div>
             </div>
 
-            {/* Big Play Button */}
+            {/* Primary Action Button (PLAY NOW) */}
             <button
               onClick={() => {
                 soundManager.playClick();
                 onStart();
               }}
-              className="w-full py-3.5 px-6 rounded-xl font-display font-bold text-lg text-slate-950 bg-gradient-to-r from-cyan-400 to-cyan-300 hover:from-cyan-300 hover:to-sky-200 active:scale-98 transition-all shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 cursor-pointer mb-5"
+              className="w-full py-3 sm:py-3.5 px-6 rounded-xl font-display font-bold text-base sm:text-lg text-slate-950 bg-gradient-to-r from-cyan-400 to-cyan-300 hover:from-cyan-300 hover:to-sky-200 active:scale-98 transition-all shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 cursor-pointer mb-4"
             >
               <Play className="w-5 h-5 fill-slate-950" />
               PLAY NOW
             </button>
 
-            {/* Controls Guide */}
-            <div className="text-left bg-slate-950/40 p-4 rounded-xl border border-slate-800/80">
-              <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">
-                Controls Guide
-              </h2>
-              <div className="space-y-2 text-xs text-slate-300">
+            {/* Controls Guide (Responsive for Mobile & Desktop) */}
+            <div className="text-left bg-slate-950/50 p-3 sm:p-4 rounded-xl border border-slate-800/80 mb-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold flex items-center gap-1.5">
+                  <Smartphone className="w-3.5 h-3.5 text-cyan-400" />
+                  Phone Controls
+                </span>
+                <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                  <Keyboard className="w-3 h-3" />
+                  Desktop Ready
+                </span>
+              </div>
+
+              <div className="space-y-1.5 text-xs text-slate-300">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Jump over crates & spikes</span>
-                  <div className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[11px] font-mono">SPACE</kbd>
-                    <span className="text-slate-500">or</span>
-                    <kbd className="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[11px] font-mono">W</kbd>
-                    <span className="text-slate-500">or</span>
-                    <kbd className="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[11px] font-mono">↑</kbd>
-                  </div>
+                  <span className="text-slate-400">Leap over crates & spikes:</span>
+                  <span className="font-semibold text-cyan-300 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/40 text-[11px]">
+                    JUMP (Right Thumb)
+                  </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Slide under overhead beams</span>
-                  <div className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[11px] font-mono">S</kbd>
-                    <span className="text-slate-500">or</span>
-                    <kbd className="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[11px] font-mono">↓</kbd>
-                  </div>
+                  <span className="text-slate-400">Glide under hanging beams:</span>
+                  <span className="font-semibold text-purple-300 bg-purple-950/40 px-2 py-0.5 rounded border border-purple-800/40 text-[11px]">
+                    SLIDE (Left Thumb)
+                  </span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Pause / Resume</span>
-                  <kbd className="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[11px] font-mono">ESC</kbd>
-                </div>
-                <div className="pt-1 text-[11px] text-cyan-400/90 font-medium">
-                  Touch screen users: On-screen Jump & Slide buttons available during run.
+                <div className="text-[11px] text-slate-400 pt-1 border-t border-slate-800/60">
+                  Swipe up/down anywhere on screen also jumps and slides!
                 </div>
               </div>
             </div>
 
-            {/* Audio Toggle in Start Screen */}
-            <div className="mt-4 flex items-center justify-center">
+            {/* Sound Toggle */}
+            <div className="flex items-center justify-center">
               <button
                 onClick={onToggleSound}
-                className="inline-flex items-center gap-2 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer py-1 px-3 rounded-lg hover:bg-slate-800/60"
+                className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer py-1 px-3 rounded-lg hover:bg-slate-800/60"
               >
                 {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5 text-red-400" />}
                 <span>Sound: {soundEnabled ? 'Enabled' : 'Muted'}</span>
@@ -203,10 +207,10 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
         </div>
       )}
 
-      {/* Pause Screen Modal */}
+      {/* PAUSE SCREEN MODAL */}
       {state === 'PAUSED' && (
-        <div className="pointer-events-auto my-auto flex flex-col items-center justify-center px-4 text-center z-20">
-          <div className="max-w-xs w-full bg-slate-900/95 backdrop-blur-md p-6 rounded-2xl border border-slate-700/80 shadow-2xl">
+        <div className="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="max-w-xs w-full bg-slate-900/95 border border-slate-700/80 p-6 rounded-2xl shadow-2xl text-center">
             <h2 className="text-2xl font-bold font-display tracking-wide text-white uppercase mb-6">
               Game Paused
             </h2>
@@ -217,7 +221,7 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
                   soundManager.playClick();
                   onResume();
                 }}
-                className="w-full py-3 px-4 rounded-xl font-bold text-sm text-slate-950 bg-cyan-400 hover:bg-cyan-300 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3 px-4 rounded-xl font-bold text-sm text-slate-950 bg-cyan-400 hover:bg-cyan-300 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-cyan-500/20"
               >
                 <Play className="w-4 h-4 fill-slate-950" />
                 Resume
@@ -249,16 +253,16 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
         </div>
       )}
 
-      {/* Game Over Screen Modal */}
+      {/* GAME OVER SCREEN MODAL */}
       {state === 'GAMEOVER' && (
-        <div className="pointer-events-auto my-auto flex flex-col items-center justify-center px-4 text-center z-20">
-          <div className="max-w-sm w-full bg-slate-900/95 backdrop-blur-md p-6 sm:p-7 rounded-2xl border border-red-900/50 shadow-2xl shadow-red-950/40 animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="relative w-full max-w-sm my-auto bg-slate-900/95 border border-red-900/50 p-5 sm:p-7 rounded-2xl shadow-2xl shadow-red-950/40 text-center animate-in fade-in zoom-in-95 duration-200">
             {/* Header */}
-            <div className="mb-5">
+            <div className="mb-4 sm:mb-5">
               <span className="text-xs uppercase tracking-widest font-bold text-red-400 font-display">
                 Run Terminated
               </span>
-              <h2 className="text-3xl font-black font-display tracking-tight text-white uppercase mt-0.5">
+              <h2 className="text-2xl sm:text-3xl font-black font-display tracking-tight text-white uppercase mt-0.5">
                 Crashed!
               </h2>
               {stats.isNewBest && (
@@ -270,26 +274,26 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
             </div>
 
             {/* Score Breakdown */}
-            <div className="bg-slate-950/70 p-4 rounded-xl border border-slate-800 space-y-3 mb-6">
-              <div className="flex items-center justify-between text-sm">
+            <div className="bg-slate-950/70 p-3.5 sm:p-4 rounded-xl border border-slate-800 space-y-2.5 sm:space-y-3 mb-5 sm:mb-6">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
                 <span className="text-slate-400">Distance Survived</span>
-                <span className="text-xl font-bold font-mono tabular-nums text-white">
+                <span className="text-lg sm:text-xl font-bold font-mono tabular-nums text-white">
                   {stats.distance}
                   <span className="text-xs text-slate-400 font-normal ml-0.5">m</span>
                 </span>
               </div>
 
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
                 <span className="text-slate-400">Coins Collected</span>
-                <span className="text-lg font-bold font-mono tabular-nums text-amber-300 flex items-center gap-1">
+                <span className="text-base sm:text-lg font-bold font-mono tabular-nums text-amber-300 flex items-center gap-1">
                   <Coins className="w-3.5 h-3.5 text-amber-400" />
                   +{stats.coinsCollected}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center justify-between text-xs sm:text-sm">
                 <span className="text-slate-400">Total Balance</span>
-                <span className="text-base font-bold font-mono tabular-nums text-amber-200 flex items-center gap-1">
+                <span className="text-sm sm:text-base font-bold font-mono tabular-nums text-amber-200 flex items-center gap-1">
                   <Coins className="w-3.5 h-3.5 text-amber-400/80" />
                   {stats.totalCoins}
                 </span>
@@ -307,13 +311,13 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-3">
+            <div className="space-y-2.5 sm:space-y-3">
               <button
                 onClick={() => {
                   soundManager.playClick();
                   onRestart();
                 }}
-                className="w-full py-3.5 px-4 rounded-xl font-display font-bold text-base text-slate-950 bg-gradient-to-r from-cyan-400 to-cyan-300 hover:from-cyan-300 hover:to-sky-200 active:scale-98 transition-all shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-3 sm:py-3.5 px-4 rounded-xl font-display font-bold text-sm sm:text-base text-slate-950 bg-gradient-to-r from-cyan-400 to-cyan-300 hover:from-cyan-300 hover:to-sky-200 active:scale-98 transition-all shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <RotateCcw className="w-4 h-4 stroke-[2.5]" />
                 PLAY AGAIN
@@ -324,7 +328,7 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
                   soundManager.playClick();
                   onMainMenu();
                 }}
-                className="w-full py-2.5 px-4 rounded-xl font-medium text-xs text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2 sm:py-2.5 px-4 rounded-xl font-medium text-xs text-slate-400 hover:text-white hover:bg-slate-800/60 transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Home className="w-4 h-4" />
                 Main Menu
@@ -333,62 +337,6 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
           </div>
         </div>
       )}
-
-      {/* Mobile Touch Controls at Bottom during Gameplay */}
-      {state === 'PLAYING' && (
-        <footer className="pointer-events-auto px-4 pb-4 pt-2 flex items-center justify-between gap-4 z-20">
-          {/* Slide Touch Button (Left Thumb) */}
-          <button
-            type="button"
-            onTouchStart={(e) => {
-              e.preventDefault();
-              onSlide();
-            }}
-            onTouchEnd={(e) => {
-              e.preventDefault();
-              onStopSlide();
-            }}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              onSlide();
-            }}
-            onMouseUp={(e) => {
-              e.preventDefault();
-              onStopSlide();
-            }}
-            className="flex-1 max-w-[170px] h-16 sm:h-20 bg-gradient-to-b from-purple-900/80 to-purple-950/90 active:from-purple-600 active:to-purple-700 border-2 border-purple-500/60 active:border-purple-300 rounded-2xl flex flex-col items-center justify-center gap-1 shadow-lg shadow-purple-950/50 transition-transform active:scale-95 touch-none cursor-pointer"
-            aria-label="Slide button"
-          >
-            <ArrowDown className="w-6 h-6 text-purple-200" />
-            <span className="text-xs font-bold font-display tracking-wider text-purple-100 uppercase">
-              SLIDE
-            </span>
-          </button>
-
-          {/* Jump Touch Button (Right Thumb) */}
-          <button
-            type="button"
-            onTouchStart={(e) => {
-              e.preventDefault();
-              onJump();
-            }}
-            onMouseDown={(e) => {
-              e.preventDefault();
-              onJump();
-            }}
-            className="flex-1 max-w-[170px] h-16 sm:h-20 bg-gradient-to-b from-cyan-900/80 to-cyan-950/90 active:from-cyan-500 active:to-cyan-600 border-2 border-cyan-500/60 active:border-cyan-300 rounded-2xl flex flex-col items-center justify-center gap-1 shadow-lg shadow-cyan-950/50 transition-transform active:scale-95 touch-none cursor-pointer"
-            aria-label="Jump button"
-          >
-            <ArrowUp className="w-6 h-6 text-cyan-200" />
-            <span className="text-xs font-bold font-display tracking-wider text-cyan-100 uppercase">
-              JUMP
-            </span>
-          </button>
-        </footer>
-      )}
-
-      {/* Empty space when not playing to maintain flex spacing */}
-      {state !== 'PLAYING' && <div className="h-4" />}
-    </div>
+    </>
   );
 };

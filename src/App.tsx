@@ -7,7 +7,7 @@ import { GameCanvas } from './components/GameCanvas.tsx';
 
 export default function App() {
   return (
-    <main className="w-screen h-screen flex flex-col items-center justify-center bg-slate-950 overflow-hidden">
+    <main className="w-full h-[100dvh] flex flex-col items-center justify-center bg-slate-950 overflow-hidden select-none">
       <GameCanvas />
     </main>
   );
