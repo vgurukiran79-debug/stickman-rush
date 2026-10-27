@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  html, body, #root {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #050713;
+    color: #F8FAFC;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+}
+
+.font-display {
+  font-family: 'Outfit', system-ui, sans-serif;
+}
+
+/* Pulsing neon glows and subtle animations */
+@keyframes neonPulse {
+  0%, 100% { opacity: 0.85; filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.6)); }
+  50% { opacity: 1; filter: drop-shadow(0 0 16px rgba(139, 92, 246, 0.8)); }
+}
+
+.neon-glow {
+  animation: neonPulse 3s ease-in-out infinite;
+}
+
+/* Prevent text drag or select on buttons */
+button {
+  user-select: none;
+  -webkit-user-select: none;
+}

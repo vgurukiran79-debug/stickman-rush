@@ -1,0 +1,6 @@
+{
+  "name": "Stickman Rush",
+  "description": "A high-octane 2D endless runner where you jump, slide, collect coins, and dodge obstacles across a neon cyberpunk skyline.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
