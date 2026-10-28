@@ -13,6 +13,8 @@ import {
   STORAGE_KEY_TOTAL_COINS,
 } from './constants.ts';
 import { GameState, GameStats, PowerUpType, ActivePowerUp } from '../types/game.ts';
+import { SkinId } from '../types/skin.ts';
+import { skinManager } from './skinManager.ts';
 import { Player } from './player.ts';
 import { ObstacleManager } from './obstacleManager.ts';
 import { CoinManager } from './coinManager.ts';
@@ -74,6 +76,12 @@ export class GameEngine {
     this.worldRenderer = new WorldRenderer();
     this.missionManager = new MissionManager();
     this.missionManager.onNotification = () => {
+      this.notifyStats();
+    };
+
+    this.player.skinId = skinManager.getEquippedSkinId();
+    skinManager.onSkinChanged = (newSkinId) => {
+      this.player.skinId = newSkinId;
       this.notifyStats();
     };
 
@@ -156,7 +164,32 @@ export class GameEngine {
       activeNotifications: this.missionManager.getActiveNotifications(),
       runObstaclesDodged: this.runObstaclesDodged,
       runActiveTime: Math.floor(this.runActiveTime),
+      equippedSkinId: skinManager.getEquippedSkinId(),
+      unlockedSkins: skinManager.getUnlockedSkinIds(),
     };
+  }
+
+  public equipSkin(skinId: SkinId): boolean {
+    const success = skinManager.equip(skinId);
+    if (success) {
+      this.player.skinId = skinId;
+      soundManager.playEquipSkin();
+      this.notifyStats();
+    }
+    return success;
+  }
+
+  public purchaseSkin(skinId: SkinId): { success: boolean; newCoins: number; error?: string } {
+    const result = skinManager.purchase(skinId, this.totalCoins);
+    if (result.success) {
+      this.totalCoins = result.newCoins;
+      this.player.skinId = skinId;
+      soundManager.playBuySkin();
+      this.notifyStats();
+    } else {
+      soundManager.playError();
+    }
+    return result;
   }
 
   public claimMissionReward(missionId: string): { success: boolean; coinsAwarded: number } {

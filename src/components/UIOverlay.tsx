@@ -21,10 +21,13 @@ import {
   Magnet,
   Target,
   Award,
+  ShoppingBag,
 } from 'lucide-react';
 import { GameState, GameStats } from '../types/game.ts';
+import { SkinId, SKINS_CATALOG } from '../types/skin.ts';
 import { soundManager } from '../audio/soundManager.ts';
 import { MissionsModal } from './MissionsModal.tsx';
+import { ShopModal } from './ShopModal.tsx';
 import { NotificationToast } from './NotificationToast.tsx';
 
 interface UIOverlayProps {
@@ -42,6 +45,8 @@ interface UIOverlayProps {
   onToggleSound: () => void;
   onClaimReward: (missionId: string) => void;
   onDismissNotification: (id: string) => void;
+  onEquipSkin: (skinId: SkinId) => void;
+  onPurchaseSkin: (skinId: SkinId) => void;
 }
 
 export const UIOverlay: React.FC<UIOverlayProps> = ({
@@ -56,11 +61,15 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
   onToggleSound,
   onClaimReward,
   onDismissNotification,
+  onEquipSkin,
+  onPurchaseSkin,
 }) => {
   const [isMissionsOpen, setIsMissionsOpen] = useState(false);
+  const [isShopOpen, setIsShopOpen] = useState(false);
   const activePowerUp = stats.activePowerUp;
 
   const unclaimedMissionsCount = (stats.missions || []).filter((m) => m.completed && !m.claimed).length;
+  const equippedSkin = SKINS_CATALOG.find((s) => s.id === stats.equippedSkinId) || SKINS_CATALOG[0];
 
   return (
     <>
@@ -166,6 +175,17 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
             </button>
 
             <button
+              onClick={() => {
+                soundManager.playClick();
+                setIsShopOpen(true);
+              }}
+              aria-label="Open Character Shop & Skins"
+              className="p-1.5 sm:p-2 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-white transition-colors cursor-pointer"
+            >
+              <ShoppingBag className="w-4 h-4 text-amber-300" />
+            </button>
+
+            <button
               onClick={onToggleSound}
               aria-label={soundEnabled ? 'Mute audio' : 'Unmute audio'}
               className="p-1.5 sm:p-2 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-white transition-colors cursor-pointer"
@@ -239,22 +259,40 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
               PLAY NOW
             </button>
 
-            {/* Missions & Milestones Modal Button */}
-            <button
-              onClick={() => {
-                soundManager.playClick();
-                setIsMissionsOpen(true);
-              }}
-              className="w-full py-2.5 px-4 rounded-xl font-medium text-xs sm:text-sm text-cyan-300 bg-slate-950/60 hover:bg-slate-800/80 border border-cyan-800/50 hover:border-cyan-500/60 transition-all flex items-center justify-center gap-2 cursor-pointer mb-4"
-            >
-              <Award className="w-4 h-4 text-cyan-400" />
-              <span>Missions & Milestones</span>
-              {unclaimedMissionsCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black">
-                  {unclaimedMissionsCount} Claimable
-                </span>
-              )}
-            </button>
+            {/* Missions & Armory Shop Navigation Buttons */}
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <button
+                onClick={() => {
+                  soundManager.playClick();
+                  setIsShopOpen(true);
+                }}
+                className="py-2.5 px-3 rounded-xl font-semibold text-xs sm:text-sm text-amber-300 bg-amber-950/40 hover:bg-amber-950/70 border border-amber-800/60 hover:border-amber-400/60 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+              >
+                <ShoppingBag className="w-4 h-4 text-amber-400" />
+                <span>Armory Shop</span>
+                <span
+                  className="w-2 h-2 rounded-full inline-block shadow-sm"
+                  style={{ backgroundColor: equippedSkin.accentColor }}
+                  title={`Equipped: ${equippedSkin.name}`}
+                />
+              </button>
+
+              <button
+                onClick={() => {
+                  soundManager.playClick();
+                  setIsMissionsOpen(true);
+                }}
+                className="py-2.5 px-3 rounded-xl font-semibold text-xs sm:text-sm text-cyan-300 bg-cyan-950/40 hover:bg-cyan-950/70 border border-cyan-800/60 hover:border-cyan-400/60 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm relative"
+              >
+                <Award className="w-4 h-4 text-cyan-400" />
+                <span>Missions</span>
+                {unclaimedMissionsCount > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black">
+                    {unclaimedMissionsCount}
+                  </span>
+                )}
+              </button>
+            </div>
 
             {/* Power-Ups Guide */}
             <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-3 text-left">
@@ -368,6 +406,17 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
               <button
                 onClick={() => {
                   soundManager.playClick();
+                  setIsShopOpen(true);
+                }}
+                className="w-full py-2.5 px-4 rounded-xl font-medium text-xs text-amber-300 bg-slate-950/60 hover:bg-slate-800 border border-amber-800/50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <ShoppingBag className="w-4 h-4 text-amber-400" />
+                <span>Armory & Skins</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  soundManager.playClick();
                   onRestart();
                 }}
                 className="w-full py-2.5 px-4 rounded-xl font-medium text-xs text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors flex items-center justify-center gap-2 cursor-pointer"
@@ -448,22 +497,35 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
               </div>
             </div>
 
-            {/* Missions & Rewards Button on Game Over */}
-            <button
-              onClick={() => {
-                soundManager.playClick();
-                setIsMissionsOpen(true);
-              }}
-              className="w-full py-2.5 px-4 rounded-xl font-semibold text-xs sm:text-sm text-cyan-300 bg-cyan-950/40 hover:bg-cyan-950/70 border border-cyan-800/60 hover:border-cyan-400/60 transition-all flex items-center justify-center gap-2 cursor-pointer mb-3"
-            >
-              <Award className="w-4 h-4 text-cyan-400" />
-              <span>Missions & Rewards</span>
-              {unclaimedMissionsCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black">
-                  +{unclaimedMissionsCount} Claimable!
-                </span>
-              )}
-            </button>
+            {/* Missions & Armory Buttons on Game Over */}
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <button
+                onClick={() => {
+                  soundManager.playClick();
+                  setIsShopOpen(true);
+                }}
+                className="py-2.5 px-3 rounded-xl font-semibold text-xs text-amber-300 bg-amber-950/40 hover:bg-amber-950/70 border border-amber-800/60 hover:border-amber-400/60 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <ShoppingBag className="w-3.5 h-3.5 text-amber-400" />
+                <span>Armory Shop</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  soundManager.playClick();
+                  setIsMissionsOpen(true);
+                }}
+                className="py-2.5 px-3 rounded-xl font-semibold text-xs text-cyan-300 bg-cyan-950/40 hover:bg-cyan-950/70 border border-cyan-800/60 hover:border-cyan-400/60 transition-all flex items-center justify-center gap-1.5 cursor-pointer relative"
+              >
+                <Award className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Missions</span>
+                {unclaimedMissionsCount > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black">
+                    +{unclaimedMissionsCount}
+                  </span>
+                )}
+              </button>
+            </div>
 
             {/* Action Buttons */}
             <div className="space-y-2.5 sm:space-y-3">
@@ -502,6 +564,18 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
         totalCoins={stats.totalCoins}
         onClaimReward={onClaimReward}
       />
+
+      {/* 4. CHARACTER ARMORY & COSMETIC SHOP MODAL */}
+      <ShopModal
+        isOpen={isShopOpen}
+        onClose={() => setIsShopOpen(false)}
+        totalCoins={stats.totalCoins}
+        equippedSkinId={stats.equippedSkinId || 'classic'}
+        unlockedSkins={stats.unlockedSkins || ['classic']}
+        onEquipSkin={onEquipSkin}
+        onPurchaseSkin={onPurchaseSkin}
+      />
     </>
   );
 };
+

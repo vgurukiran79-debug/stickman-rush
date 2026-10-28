@@ -8,6 +8,7 @@ import { ArrowUp, ArrowDown } from 'lucide-react';
 import { VIRTUAL_WIDTH, VIRTUAL_HEIGHT } from '../game/constants.ts';
 import { GameEngine } from '../game/gameEngine.ts';
 import { GameState, GameStats } from '../types/game.ts';
+import { SkinId } from '../types/skin.ts';
 import { UIOverlay } from './UIOverlay.tsx';
 import { soundManager } from '../audio/soundManager.ts';
 
@@ -29,6 +30,8 @@ export const GameCanvas: React.FC = () => {
     activeNotifications: [],
     runObstaclesDodged: 0,
     runActiveTime: 0,
+    equippedSkinId: 'classic',
+    unlockedSkins: ['classic'],
   });
   const [soundEnabled, setSoundEnabled] = useState<boolean>(soundManager.getSoundEnabled());
 
@@ -210,6 +213,14 @@ export const GameCanvas: React.FC = () => {
     engineRef.current?.dismissNotification(id);
   }, []);
 
+  const handleEquipSkin = useCallback((skinId: SkinId) => {
+    engineRef.current?.equipSkin(skinId);
+  }, []);
+
+  const handlePurchaseSkin = useCallback((skinId: SkinId) => {
+    engineRef.current?.purchaseSkin(skinId);
+  }, []);
+
   return (
     <div className="relative w-full h-[100dvh] flex flex-col justify-between items-center bg-slate-950 select-none overflow-hidden touch-none p-0 sm:p-2">
       {/* Centered Game Viewport Container */}
@@ -238,6 +249,8 @@ export const GameCanvas: React.FC = () => {
             onToggleSound={handleToggleSound}
             onClaimReward={handleClaimReward}
             onDismissNotification={handleDismissNotification}
+            onEquipSkin={handleEquipSkin}
+            onPurchaseSkin={handlePurchaseSkin}
           />
         </div>
       </div>

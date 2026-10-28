@@ -44,3 +44,5 @@ export const STORAGE_KEY_SOUND = 'stickman_rush_sound_enabled';
 export const STORAGE_KEY_MISSIONS = 'stickman_rush_missions_v1';
 export const STORAGE_KEY_ACHIEVEMENTS = 'stickman_rush_achievements_v1';
 export const STORAGE_KEY_LIFETIME = 'stickman_rush_lifetime_stats_v1';
+export const STORAGE_KEY_UNLOCKED_SKINS = 'stickman_rush_unlocked_skins_v1';
+export const STORAGE_KEY_EQUIPPED_SKIN = 'stickman_rush_equipped_skin_v1';

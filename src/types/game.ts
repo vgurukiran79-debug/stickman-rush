@@ -4,6 +4,7 @@
  */
 
 import { Mission, Achievement, MissionNotification } from './missions.ts';
+import { SkinId } from './skin.ts';
 
 export type GameState = 'START' | 'PLAYING' | 'PAUSED' | 'GAMEOVER';
 
@@ -99,4 +100,6 @@ export interface GameStats {
   activeNotifications: MissionNotification[];
   runObstaclesDodged: number;
   runActiveTime: number;
+  equippedSkinId: SkinId;
+  unlockedSkins: SkinId[];
 }
