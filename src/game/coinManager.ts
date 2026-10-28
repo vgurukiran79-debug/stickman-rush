@@ -31,7 +31,10 @@ export class CoinManager {
     speed: number,
     obstacles: Obstacle[],
     playerBox: BoundingBox,
-    particleManager: ParticleManager
+    particleManager: ParticleManager,
+    isMagnetActive?: boolean,
+    playerX?: number,
+    playerY?: number
   ): { collectedCount: number } {
     const distanceMoved = speed * dt;
     this.distanceSinceLastCoinSpawn += distanceMoved;
@@ -42,6 +45,18 @@ export class CoinManager {
       const coin = this.coins[i];
       coin.x -= distanceMoved;
       coin.angle += 4.5 * dt;
+
+      // Magnetic attraction towards player
+      if (isMagnetActive && playerX !== undefined && playerY !== undefined && !coin.collected) {
+        const dx = playerX - coin.x;
+        const dy = playerY - coin.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 280 && dist > 4) {
+          const magnetSpeed = 500;
+          coin.x += (dx / dist) * magnetSpeed * dt;
+          coin.y += (dy / dist) * magnetSpeed * dt;
+        }
+      }
 
       // Collision check with player bounding box
       // Collects strictly once per coin!

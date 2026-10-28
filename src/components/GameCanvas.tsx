@@ -23,6 +23,12 @@ export const GameCanvas: React.FC = () => {
     totalCoins: 0,
     speed: 340,
     isNewBest: false,
+    activePowerUp: null,
+    missions: [],
+    achievements: [],
+    activeNotifications: [],
+    runObstaclesDodged: 0,
+    runActiveTime: 0,
   });
   const [soundEnabled, setSoundEnabled] = useState<boolean>(soundManager.getSoundEnabled());
 
@@ -196,6 +202,14 @@ export const GameCanvas: React.FC = () => {
     setSoundEnabled(enabled);
   }, []);
 
+  const handleClaimReward = useCallback((missionId: string) => {
+    engineRef.current?.claimMissionReward(missionId);
+  }, []);
+
+  const handleDismissNotification = useCallback((id: string) => {
+    engineRef.current?.dismissNotification(id);
+  }, []);
+
   return (
     <div className="relative w-full h-[100dvh] flex flex-col justify-between items-center bg-slate-950 select-none overflow-hidden touch-none p-0 sm:p-2">
       {/* Centered Game Viewport Container */}
@@ -208,7 +222,7 @@ export const GameCanvas: React.FC = () => {
             className="w-full h-full block object-contain select-none touch-none"
           />
 
-          {/* In-Game HUD and Modals Overlay */}
+          {/* In-Game HUD, Modals, and Notifications Overlay */}
           <UIOverlay
             state={gameState}
             stats={stats}
@@ -222,6 +236,8 @@ export const GameCanvas: React.FC = () => {
             onSlide={handleSlide}
             onStopSlide={handleStopSlide}
             onToggleSound={handleToggleSound}
+            onClaimReward={handleClaimReward}
+            onDismissNotification={handleDismissNotification}
           />
         </div>
       </div>

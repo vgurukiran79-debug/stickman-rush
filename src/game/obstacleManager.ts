@@ -29,8 +29,9 @@ export class ObstacleManager {
     return this.obstacles;
   }
 
-  public update(dt: number, speed: number): { passedObstacle: boolean } {
+  public update(dt: number, speed: number): { passedObstacle: boolean; passedCount: number } {
     let passedObstacle = false;
+    let passedCount = 0;
     const distanceMoved = speed * dt;
     this.distanceSinceLastSpawn += distanceMoved;
 
@@ -44,6 +45,7 @@ export class ObstacleManager {
       if (!obs.passed && obs.x + obs.width < 140) {
         obs.passed = true;
         passedObstacle = true;
+        passedCount++;
       }
 
       // Remove obstacles that scrolled offscreen
@@ -59,7 +61,7 @@ export class ObstacleManager {
       this.currentGapRequired = this.calculateNextFairGap(speed);
     }
 
-    return { passedObstacle };
+    return { passedObstacle, passedCount };
   }
 
   private calculateNextFairGap(speed: number): number {

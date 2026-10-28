@@ -41,3 +41,6 @@ export const OVERHEAD_CLEARANCE = 48; // 48px clearance: easily clears 22px slid
 export const STORAGE_KEY_BEST = 'stickman_rush_best_score';
 export const STORAGE_KEY_TOTAL_COINS = 'stickman_rush_total_coins';
 export const STORAGE_KEY_SOUND = 'stickman_rush_sound_enabled';
+export const STORAGE_KEY_MISSIONS = 'stickman_rush_missions_v1';
+export const STORAGE_KEY_ACHIEVEMENTS = 'stickman_rush_achievements_v1';
+export const STORAGE_KEY_LIFETIME = 'stickman_rush_lifetime_stats_v1';

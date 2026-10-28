@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import { Mission, Achievement, MissionNotification } from './missions.ts';
+
 export type GameState = 'START' | 'PLAYING' | 'PAUSED' | 'GAMEOVER';
 
 export type PlayerPose = 'RUNNING' | 'JUMPING' | 'FALLING' | 'SLIDING' | 'CRASHED';
@@ -66,6 +68,24 @@ export interface FloatingText {
   maxLife: number;
 }
 
+export type PowerUpType = 'SHIELD' | 'MAGNET' | 'SPEED';
+
+export interface PowerUp {
+  id: number;
+  type: PowerUpType;
+  x: number;
+  y: number;
+  radius: number;
+  collected: boolean;
+  angle: number;
+}
+
+export interface ActivePowerUp {
+  type: PowerUpType;
+  remainingTime: number;
+  maxDuration: number;
+}
+
 export interface GameStats {
   distance: number;
   coinsCollected: number;
@@ -73,4 +93,10 @@ export interface GameStats {
   totalCoins: number;
   speed: number;
   isNewBest: boolean;
+  activePowerUp: ActivePowerUp | null;
+  missions: Mission[];
+  achievements: Achievement[];
+  activeNotifications: MissionNotification[];
+  runObstaclesDodged: number;
+  runActiveTime: number;
 }

@@ -31,6 +31,10 @@ export class Player {
   public isCrashed: boolean = false;
   public justLanded: boolean = false;
 
+  public hasShield: boolean = false;
+  public isSpeedBoosted: boolean = false;
+  public invulnerableGraceTimer: number = 0;
+
   private jumpBufferTimer: number = 0;
   private coyoteTimer: number = 0;
   private hasJumpedInAir: boolean = false;
@@ -58,6 +62,9 @@ export class Player {
     this.slideElapsedTime = 0;
     this.isCrashed = false;
     this.justLanded = false;
+    this.hasShield = false;
+    this.isSpeedBoosted = false;
+    this.invulnerableGraceTimer = 0;
     this.jumpBufferTimer = 0;
     this.coyoteTimer = 0;
     this.hasJumpedInAir = false;
@@ -220,18 +227,23 @@ export class Player {
       }
     }
 
-    if (!this.isCrashed && (speed > 420 || !this.isGrounded || this.isSliding)) {
+    // Invulnerability grace countdown
+    if (this.invulnerableGraceTimer > 0) {
+      this.invulnerableGraceTimer -= dt;
+    }
+
+    if (!this.isCrashed && (speed > 420 || !this.isGrounded || this.isSliding || this.isSpeedBoosted)) {
       this.trailTimer += dt;
-      if (this.trailTimer >= 0.055) {
+      if (this.trailTimer >= (this.isSpeedBoosted ? 0.035 : 0.055)) {
         this.trailTimer = 0;
         this.trailGhosts.push({
           x: this.x - 10,
           y: this.y,
           pose: this.getPose(),
           runCycle: this.runCycle,
-          alpha: 0.26,
+          alpha: this.isSpeedBoosted ? 0.45 : 0.26,
         });
-        if (this.trailGhosts.length > 3) {
+        if (this.trailGhosts.length > (this.isSpeedBoosted ? 5 : 3)) {
           this.trailGhosts.shift();
         }
       }
@@ -276,6 +288,14 @@ export class Player {
       return;
     }
 
+    // Flicker when in invulnerable grace period
+    if (this.invulnerableGraceTimer > 0) {
+      const flicker = Math.floor(Date.now() / 70) % 2 === 0;
+      if (flicker) {
+        ctx.globalAlpha = 0.4;
+      }
+    }
+
     // Draw futuristic motion trail ghosts
     for (const ghost of this.trailGhosts) {
       this.drawTrailGhost(ctx, ghost);
@@ -288,6 +308,40 @@ export class Player {
     } else {
       this.drawRunning(ctx);
     }
+
+    // Draw energy shield barrier if active
+    if (this.hasShield) {
+      this.drawShieldBarrier(ctx);
+    }
+
+    ctx.restore();
+  }
+
+  private drawShieldBarrier(ctx: CanvasRenderingContext2D) {
+    ctx.save();
+    const centerY = this.isSliding ? this.y - 14 : this.y - 34;
+    const radiusX = this.isSliding ? 34 : 26;
+    const radiusY = this.isSliding ? 20 : 38;
+
+    ctx.shadowColor = '#06B6D4';
+    ctx.shadowBlur = 14;
+    ctx.strokeStyle = '#38BDF8';
+    ctx.lineWidth = 2.5;
+
+    ctx.beginPath();
+    ctx.ellipse(this.x + (this.isSliding ? 6 : 0), centerY, radiusX, radiusY, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(6, 182, 212, 0.15)';
+    ctx.fill();
+
+    // Pulse ring
+    const pulse = (Math.sin(Date.now() * 0.006) + 1) * 2;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.ellipse(this.x + (this.isSliding ? 6 : 0), centerY, radiusX + pulse, radiusY + pulse, 0, 0, Math.PI * 2);
+    ctx.stroke();
 
     ctx.restore();
   }

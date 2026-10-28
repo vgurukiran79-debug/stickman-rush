@@ -154,6 +154,64 @@ export class ParticleManager {
     });
   }
 
+  public addPowerUpBurst(x: number, y: number, color: string, label: string) {
+    for (let i = 0; i < 20; i++) {
+      const angle = (Math.PI * 2 * i) / 20 + (Math.random() - 0.5) * 0.3;
+      const speed = 90 + Math.random() * 120;
+      this.particles.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 20,
+        life: 0.5 + Math.random() * 0.3,
+        maxLife: 0.8,
+        size: 3 + Math.random() * 3,
+        color,
+        alpha: 1,
+        shape: 'spark',
+      });
+    }
+
+    this.floatingTexts.push({
+      id: this.nextTextId++,
+      x,
+      y: y - 18,
+      text: label,
+      color,
+      life: 1.0,
+      maxLife: 1.0,
+    });
+  }
+
+  public addShieldShatter(x: number, y: number) {
+    for (let i = 0; i < 24; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const speed = 120 + Math.random() * 180;
+      this.particles.push({
+        x,
+        y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 40,
+        life: 0.4 + Math.random() * 0.3,
+        maxLife: 0.7,
+        size: 3 + Math.random() * 3.5,
+        color: i % 2 === 0 ? '#38BDF8' : '#06B6D4',
+        alpha: 1,
+        shape: 'spark',
+      });
+    }
+
+    this.floatingTexts.push({
+      id: this.nextTextId++,
+      x,
+      y: y - 20,
+      text: 'SHIELD DEFLECTED!',
+      color: '#38BDF8',
+      life: 1.0,
+      maxLife: 1.0,
+    });
+  }
+
   public update(dt: number) {
     // Update particles
     for (let i = this.particles.length - 1; i >= 0; i--) {
