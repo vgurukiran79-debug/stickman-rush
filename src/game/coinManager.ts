@@ -8,6 +8,7 @@ import {
   GROUND_Y,
 } from './constants.ts';
 import { Coin, BoundingBox, Obstacle } from '../types/game.ts';
+import { TrackId } from '../types/track.ts';
 import { soundManager } from '../audio/soundManager.ts';
 import { ParticleManager } from './particleManager.ts';
 
@@ -182,7 +183,7 @@ export class CoinManager {
     return dx * dx + dy * dy < coin.radius * coin.radius;
   }
 
-  public draw(ctx: CanvasRenderingContext2D) {
+  public draw(ctx: CanvasRenderingContext2D, trackId: TrackId = 'default') {
     for (const coin of this.coins) {
       if (coin.collected) continue;
 
@@ -193,29 +194,56 @@ export class CoinManager {
       const scaleX = Math.cos(coin.angle);
       ctx.scale(scaleX, 1);
 
-      // Outer golden glow
-      ctx.shadowColor = 'rgba(251, 191, 36, 0.75)';
+      let glowColor = 'rgba(251, 191, 36, 0.75)';
+      let rimColor = '#D97706';
+      let faceColor = '#FBBF24';
+      let coreColor = '#FEF08A';
+
+      if (trackId === 'cyber_city') {
+        glowColor = 'rgba(192, 132, 252, 0.85)';
+        rimColor = '#9333EA';
+        faceColor = '#C084FC';
+        coreColor = '#38BDF8';
+      } else if (trackId === 'jungle_adventure') {
+        glowColor = 'rgba(16, 185, 129, 0.85)';
+        rimColor = '#047857';
+        faceColor = '#10B981';
+        coreColor = '#FDE68A';
+      } else if (trackId === 'lava_world') {
+        glowColor = 'rgba(249, 115, 22, 0.85)';
+        rimColor = '#DC2626';
+        faceColor = '#F97316';
+        coreColor = '#FEF08A';
+      } else if (trackId === 'frozen_kingdom') {
+        glowColor = 'rgba(56, 189, 248, 0.85)';
+        rimColor = '#0284C7';
+        faceColor = '#38BDF8';
+        coreColor = '#F0F9FF';
+      }
+
+      // Outer glow
+      ctx.shadowColor = glowColor;
       ctx.shadowBlur = 10;
 
-      // Outer gold rim
-      ctx.fillStyle = '#D97706';
+      // Outer rim
+      ctx.fillStyle = rimColor;
       ctx.beginPath();
       ctx.arc(0, 0, coin.radius, 0, Math.PI * 2);
       ctx.fill();
 
-      // Inner bright gold face
-      ctx.fillStyle = '#FBBF24';
+      // Inner face
+      ctx.fillStyle = faceColor;
       ctx.beginPath();
       ctx.arc(0, 0, coin.radius - 2, 0, Math.PI * 2);
       ctx.fill();
 
-      // Shiny core star or ring
-      ctx.fillStyle = '#FEF08A';
+      // Core shiny gem/star
+      ctx.fillStyle = coreColor;
       ctx.beginPath();
       ctx.arc(0, 0, coin.radius - 4.5, 0, Math.PI * 2);
       ctx.fill();
 
-      // Star sparkle highlight
+      // Sparkle highlight
       if (Math.abs(scaleX) > 0.35) {
         ctx.fillStyle = '#FFFFFF';
         ctx.beginPath();

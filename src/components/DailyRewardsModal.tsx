@@ -20,6 +20,7 @@ import {
 import { DAILY_REWARDS_SCHEDULE, DailyRewardDay } from '../types/dailyReward.ts';
 import { dailyRewardManager } from '../game/dailyRewardManager.ts';
 import { soundManager } from '../audio/soundManager.ts';
+import { SoundToggle } from './SoundToggle.tsx';
 
 interface DailyRewardsModalProps {
   isOpen: boolean;
@@ -73,17 +74,20 @@ export const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({
         <div className="absolute -top-20 -right-20 w-44 h-44 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 -left-20 w-44 h-44 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Close Button */}
-        <button
-          onClick={() => {
-            soundManager.playClick();
-            onClose();
-          }}
-          className="absolute top-3 right-3 p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer z-10"
-          aria-label="Close modal"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        {/* Top Action Controls: Sound Toggle and Close */}
+        <div className="absolute top-3 right-3 flex items-center gap-2 z-10">
+          <SoundToggle variant="compact" />
+          <button
+            onClick={() => {
+              soundManager.playClick();
+              onClose();
+            }}
+            className="p-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            aria-label="Close modal"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
         {/* Header Title */}
         <div className="mb-4">

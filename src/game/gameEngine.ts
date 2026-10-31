@@ -14,7 +14,9 @@ import {
 } from './constants.ts';
 import { GameState, GameStats, PowerUpType, ActivePowerUp } from '../types/game.ts';
 import { SkinId } from '../types/skin.ts';
+import { TrackId } from '../types/track.ts';
 import { skinManager } from './skinManager.ts';
+import { trackManager } from './trackManager.ts';
 import { Player } from './player.ts';
 import { ObstacleManager } from './obstacleManager.ts';
 import { CoinManager } from './coinManager.ts';
@@ -74,7 +76,7 @@ export class GameEngine {
     this.coinManager = new CoinManager();
     this.powerUpManager = new PowerUpManager();
     this.particleManager = new ParticleManager();
-    this.worldRenderer = new WorldRenderer();
+    this.worldRenderer = new WorldRenderer(trackManager.getEquippedTrackId());
     this.missionManager = new MissionManager();
     this.missionManager.onNotification = () => {
       this.notifyStats();
@@ -83,6 +85,11 @@ export class GameEngine {
     this.player.skinId = skinManager.getEquippedSkinId();
     skinManager.onSkinChanged = (newSkinId) => {
       this.player.skinId = newSkinId;
+      this.notifyStats();
+    };
+
+    trackManager.onTrackChanged = (newTrackId) => {
+      this.worldRenderer.setTrack(newTrackId);
       this.notifyStats();
     };
 
@@ -167,6 +174,8 @@ export class GameEngine {
       runActiveTime: Math.floor(this.runActiveTime),
       equippedSkinId: skinManager.getEquippedSkinId(),
       unlockedSkins: skinManager.getUnlockedSkinIds(),
+      equippedTrackId: trackManager.getEquippedTrackId(),
+      unlockedTracks: trackManager.getUnlockedTrackIds(),
       canClaimDailyReward: dailyRewardManager.getStatus().canClaim,
     };
   }
@@ -202,6 +211,30 @@ export class GameEngine {
       soundManager.playError();
     }
     return result;
+  }
+
+  public equipTrack(trackId: TrackId): boolean {
+    const success = trackManager.equip(trackId);
+    if (success) {
+      this.worldRenderer.setTrack(trackId);
+      soundManager.playEquipSkin();
+      this.notifyStats();
+    }
+    return success;
+  }
+
+  public purchaseTrack(trackId: TrackId): { success: boolean; newCoins: number; error?: string } {
+    const result = trackManager.purchase(trackId, this.totalCoins);
+    if (result.success) {
+      this.totalCoins = result.newTotalCoins;
+      this.worldRenderer.setTrack(trackId);
+      soundManager.playBuySkin();
+      this.notifyStats();
+      return { success: true, newCoins: result.newTotalCoins };
+    } else {
+      soundManager.playError();
+      return { success: false, newCoins: this.totalCoins, error: result.error };
+    }
   }
 
   public claimMissionReward(missionId: string): { success: boolean; coinsAwarded: number } {
@@ -532,14 +565,16 @@ export class GameEngine {
     // Draw parallax background, stars, moon, skyline and ground with distance progression
     this.worldRenderer.beginFrame(ctx, this.totalElapsed, this.distance);
 
-    // Draw obstacles
-    this.obstacleManager.draw(ctx);
+    const equippedTrackId = trackManager.getEquippedTrackId();
+
+    // Draw obstacles with track-specific theme
+    this.obstacleManager.draw(ctx, equippedTrackId);
 
     // Draw power-up collectibles
     this.powerUpManager.draw(ctx);
 
-    // Draw coins
-    this.coinManager.draw(ctx);
+    // Draw coins with track-specific theme
+    this.coinManager.draw(ctx, equippedTrackId);
 
     // Draw player stickman
     this.player.draw(ctx);

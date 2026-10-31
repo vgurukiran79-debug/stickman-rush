@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { Mission, Achievement, MissionDifficulty } from '../types/missions.ts';
 import { soundManager } from '../audio/soundManager.ts';
+import { SoundToggle } from './SoundToggle.tsx';
 
 interface MissionsModalProps {
   isOpen: boolean;
@@ -72,16 +73,20 @@ export const MissionsModal: React.FC<MissionsModalProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={() => {
-              soundManager.playClick();
-              onClose();
-            }}
-            aria-label="Close modal"
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <SoundToggle variant="compact" />
+
+            <button
+              onClick={() => {
+                soundManager.playClick();
+                onClose();
+              }}
+              aria-label="Close modal"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Tab Selection Bar */}

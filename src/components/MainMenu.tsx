@@ -17,9 +17,11 @@ import {
   VolumeX,
   Gift,
   ChevronRight,
+  Compass,
 } from 'lucide-react';
 import { GameStats } from '../types/game.ts';
 import { SKINS_CATALOG, SkinId } from '../types/skin.ts';
+import { TRACKS_CATALOG } from '../types/track.ts';
 import { soundManager } from '../audio/soundManager.ts';
 import { drawStickman } from '../game/stickmanRenderer.ts';
 
@@ -28,6 +30,7 @@ interface MainMenuProps {
   soundEnabled: boolean;
   onStart: () => void;
   onOpenShop: () => void;
+  onOpenTrackShop: () => void;
   onOpenMissions: () => void;
   onOpenDailyRewards: () => void;
   onToggleSound: () => void;
@@ -38,6 +41,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   soundEnabled,
   onStart,
   onOpenShop,
+  onOpenTrackShop,
   onOpenMissions,
   onOpenDailyRewards,
   onToggleSound,
@@ -46,6 +50,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   const [isStarting, setIsStarting] = useState(false);
 
   const equippedSkin = SKINS_CATALOG.find((s) => s.id === stats.equippedSkinId) || SKINS_CATALOG[0];
+  const equippedTrack = TRACKS_CATALOG.find((t) => t.id === stats.equippedTrackId) || TRACKS_CATALOG[0];
   const unclaimedMissionsCount = (stats.missions || []).filter((m) => m.completed && !m.claimed).length;
 
   // Single-click guarded play launcher
@@ -190,24 +195,24 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             </h1>
           </div>
 
-          {/* Sound Toggle */}
-          <button
-            onClick={onToggleSound}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-xs text-slate-300 hover:text-white transition-colors cursor-pointer"
-            aria-label={soundEnabled ? 'Mute sound' : 'Enable sound'}
-          >
-            {soundEnabled ? (
-              <>
-                <Volume2 className="w-4 h-4 text-cyan-400" />
-                <span className="font-semibold tracking-wide">SOUND ON</span>
-              </>
-            ) : (
-              <>
-                <VolumeX className="w-4 h-4 text-red-400" />
-                <span className="font-semibold tracking-wide text-red-300">MUTED</span>
-              </>
-            )}
-          </button>
+          {/* Equipped Track & Skin in header with spacing for corner SoundToggle */}
+          <div className="flex items-center gap-2 pr-28 sm:pr-36">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/90 border border-slate-700/80">
+              <Compass className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="text-xs text-slate-200 font-semibold hidden sm:inline">
+                {equippedTrack.name}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/90 border border-slate-700/80">
+              <span
+                className="w-2.5 h-2.5 rounded-full inline-block shadow-sm"
+                style={{ backgroundColor: equippedSkin.accentColor }}
+              />
+              <span className="text-xs text-slate-300 font-medium hidden sm:inline">
+                {equippedSkin.name}
+              </span>
+            </div>
+          </div>
         </header>
 
         {/* 2. PLAYER STATISTICS CARDS */}
@@ -276,91 +281,115 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           </div>
         </section>
 
-        {/* 4. MAIN NAVIGATION (THREE CARDS IN BALANCED HORIZONTAL LAYOUT) */}
-        <section className="grid grid-cols-3 gap-2.5 sm:gap-4 shrink-0">
-          {/* Card: Armory / Shop */}
+        {/* 4. MAIN NAVIGATION (FOUR CARDS IN BALANCED LAYOUT) */}
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 shrink-0">
+          {/* Card 1: Track Realms / Workshop */}
           <button
             onClick={() => {
               soundManager.playClick();
-              onOpenShop();
+              onOpenTrackShop();
             }}
-            className="p-3 sm:p-4 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-amber-400/70 shadow-md transition-all text-left flex items-center justify-between cursor-pointer group"
+            className="p-3 sm:p-3.5 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-cyan-400/70 shadow-md transition-all text-left flex items-center justify-between cursor-pointer group"
           >
-            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-amber-500/15 border border-amber-400/30 flex items-center justify-center text-amber-400 shrink-0 group-hover:scale-105 transition-transform">
-                <ShoppingBag className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <h3 className="text-xs sm:text-sm font-bold font-display text-white group-hover:text-amber-300 transition-colors truncate">
-                  ARMORY / SHOP
-                </h3>
-                <span className="text-[10px] sm:text-[11px] text-slate-400 block truncate">
-                  Character Skins
-                </span>
-              </div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-1 transition-all shrink-0 ml-1" />
-          </button>
-
-          {/* Card: Missions & Goals */}
-          <button
-            onClick={() => {
-              soundManager.playClick();
-              onOpenMissions();
-            }}
-            className="p-3 sm:p-4 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-cyan-400/70 shadow-md transition-all text-left flex items-center justify-between cursor-pointer group relative"
-          >
-            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-cyan-500/15 border border-cyan-400/30 flex items-center justify-center text-cyan-400 shrink-0 group-hover:scale-105 transition-transform">
-                <Award className="w-5 h-5" />
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-cyan-500/15 border border-cyan-400/30 flex items-center justify-center text-cyan-400 shrink-0 group-hover:scale-105 transition-transform">
+                <Compass className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="min-w-0">
                 <h3 className="text-xs sm:text-sm font-bold font-display text-white group-hover:text-cyan-300 transition-colors truncate">
-                  MISSIONS & GOALS
+                  TRACK REALMS
                 </h3>
                 <span className="text-[10px] sm:text-[11px] text-slate-400 block truncate">
-                  {unclaimedMissionsCount > 0 ? (
-                    <span className="text-amber-300 font-bold">{unclaimedMissionsCount} Pending</span>
-                  ) : (
-                    'Challenges & Bounties'
-                  )}
+                  {equippedTrack.name}
                 </span>
               </div>
             </div>
             <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-cyan-400 group-hover:translate-x-1 transition-all shrink-0 ml-1" />
           </button>
 
-          {/* Card: Daily Rewards */}
+          {/* Card 2: Armory / Skins */}
+          <button
+            onClick={() => {
+              soundManager.playClick();
+              onOpenShop();
+            }}
+            className="p-3 sm:p-3.5 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-amber-400/70 shadow-md transition-all text-left flex items-center justify-between cursor-pointer group"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-amber-500/15 border border-amber-400/30 flex items-center justify-center text-amber-400 shrink-0 group-hover:scale-105 transition-transform">
+                <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-xs sm:text-sm font-bold font-display text-white group-hover:text-amber-300 transition-colors truncate">
+                  ARMORY / SKINS
+                </h3>
+                <span className="text-[10px] sm:text-[11px] text-slate-400 block truncate">
+                  {equippedSkin.name}
+                </span>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-amber-400 group-hover:translate-x-1 transition-all shrink-0 ml-1" />
+          </button>
+
+          {/* Card 3: Missions & Goals */}
+          <button
+            onClick={() => {
+              soundManager.playClick();
+              onOpenMissions();
+            }}
+            className="p-3 sm:p-3.5 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-cyan-400/70 shadow-md transition-all text-left flex items-center justify-between cursor-pointer group relative"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-sky-500/15 border border-sky-400/30 flex items-center justify-center text-sky-400 shrink-0 group-hover:scale-105 transition-transform">
+                <Award className="w-4 h-4 sm:w-5 sm:h-5" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-xs sm:text-sm font-bold font-display text-white group-hover:text-sky-300 transition-colors truncate">
+                  MISSIONS
+                </h3>
+                <span className="text-[10px] sm:text-[11px] text-slate-400 block truncate">
+                  {unclaimedMissionsCount > 0 ? (
+                    <span className="text-amber-300 font-bold">{unclaimedMissionsCount} Pending</span>
+                  ) : (
+                    'Bounties & Goals'
+                  )}
+                </span>
+              </div>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-500 group-hover:text-sky-400 group-hover:translate-x-1 transition-all shrink-0 ml-1" />
+          </button>
+
+          {/* Card 4: Daily Rewards */}
           <button
             onClick={() => {
               soundManager.playClick();
               onOpenDailyRewards();
             }}
-            className={`p-3 sm:p-4 rounded-xl transition-all text-left flex items-center justify-between cursor-pointer group ${
+            className={`p-3 sm:p-3.5 rounded-xl transition-all text-left flex items-center justify-between cursor-pointer group ${
               stats.canClaimDailyReward
                 ? 'bg-amber-950/40 hover:bg-amber-950/60 border border-amber-400/80 shadow-[0_0_15px_rgba(255,215,0,0.2)]'
                 : 'bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-purple-400/60 shadow-md'
             }`}
           >
-            <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <div className="flex items-center gap-2.5 min-w-0">
               <div
-                className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ${
+                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ${
                   stats.canClaimDailyReward
                     ? 'bg-amber-500/25 border border-amber-400 text-amber-300'
                     : 'bg-purple-500/15 border border-purple-400/30 text-purple-400'
                 }`}
               >
-                <Gift className="w-5 h-5" />
+                <Gift className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
               <div className="min-w-0">
                 <h3 className="text-xs sm:text-sm font-bold font-display text-white group-hover:text-amber-300 transition-colors truncate">
-                  DAILY REWARDS
+                  DAILY CACHE
                 </h3>
                 <span className="text-[10px] sm:text-[11px] block truncate">
                   {stats.canClaimDailyReward ? (
                     <span className="text-amber-300 font-bold animate-pulse">CLAIM READY!</span>
                   ) : (
-                    <span className="text-slate-400">24h Cyber Cache</span>
+                    <span className="text-slate-400">24h Rewards</span>
                   )}
                 </span>
               </div>

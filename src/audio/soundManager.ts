@@ -9,6 +9,7 @@ class SoundManager {
   private ctx: AudioContext | null = null;
   private isMuted: boolean = false;
   private isInitialized: boolean = false;
+  private listeners: Set<(enabled: boolean) => void> = new Set();
 
   constructor() {
     try {
@@ -17,11 +18,41 @@ class SoundManager {
     } catch {
       this.isMuted = false;
     }
+
+    // Cross-tab and window storage synchronization
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', (e) => {
+        if (e.key === STORAGE_KEY_SOUND && e.newValue !== null) {
+          const newMuted = e.newValue === 'false';
+          if (this.isMuted !== newMuted) {
+            this.isMuted = newMuted;
+            this.notifyListeners();
+          }
+        }
+      });
+    }
+  }
+
+  public subscribe(listener: (enabled: boolean) => void): () => void {
+    this.listeners.add(listener);
+    listener(!this.isMuted);
+    return () => {
+      this.listeners.delete(listener);
+    };
+  }
+
+  private notifyListeners() {
+    const enabled = !this.isMuted;
+    this.listeners.forEach((listener) => {
+      try {
+        listener(enabled);
+      } catch {
+        // ignore callback error
+      }
+    });
   }
 
   public init() {
-    if (this.isInitialized && this.ctx && this.ctx.state === 'running') return;
-
     try {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (AudioCtx) {
@@ -40,12 +71,39 @@ class SoundManager {
 
   public toggleMute(): boolean {
     this.isMuted = !this.isMuted;
+    const enabled = !this.isMuted;
     try {
-      localStorage.setItem(STORAGE_KEY_SOUND, (!this.isMuted).toString());
+      localStorage.setItem(STORAGE_KEY_SOUND, enabled.toString());
     } catch {
       // LocalStorage access failure handled gracefully
     }
-    return !this.isMuted;
+
+    // Resume AudioContext within user interaction and play confirmation feedback
+    if (enabled) {
+      this.init();
+      this.playClick();
+    }
+
+    this.notifyListeners();
+    return enabled;
+  }
+
+  public setSoundEnabled(enabled: boolean): boolean {
+    if (this.isMuted === !enabled) return enabled;
+    this.isMuted = !enabled;
+    try {
+      localStorage.setItem(STORAGE_KEY_SOUND, enabled.toString());
+    } catch {
+      // ignore
+    }
+
+    if (enabled) {
+      this.init();
+      this.playClick();
+    }
+
+    this.notifyListeners();
+    return enabled;
   }
 
   public getSoundEnabled(): boolean {

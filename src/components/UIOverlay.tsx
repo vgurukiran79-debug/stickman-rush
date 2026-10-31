@@ -23,15 +23,19 @@ import {
   Award,
   ShoppingBag,
   Gift,
+  Compass,
 } from 'lucide-react';
 import { GameState, GameStats } from '../types/game.ts';
 import { SkinId, SKINS_CATALOG } from '../types/skin.ts';
+import { TrackId, TRACKS_CATALOG } from '../types/track.ts';
 import { soundManager } from '../audio/soundManager.ts';
 import { MissionsModal } from './MissionsModal.tsx';
 import { ShopModal } from './ShopModal.tsx';
+import { TrackShopModal } from './TrackShopModal.tsx';
 import { NotificationToast } from './NotificationToast.tsx';
 import { MainMenu } from './MainMenu.tsx';
 import { DailyRewardsModal } from './DailyRewardsModal.tsx';
+import { SoundToggle } from './SoundToggle.tsx';
 
 interface UIOverlayProps {
   state: GameState;
@@ -50,6 +54,8 @@ interface UIOverlayProps {
   onDismissNotification: (id: string) => void;
   onEquipSkin: (skinId: SkinId) => void;
   onPurchaseSkin: (skinId: SkinId) => void;
+  onEquipTrack: (trackId: TrackId) => void;
+  onPurchaseTrack: (trackId: TrackId) => void;
   onUpdateCoins: (newTotalCoins: number) => void;
 }
 
@@ -67,10 +73,13 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
   onDismissNotification,
   onEquipSkin,
   onPurchaseSkin,
+  onEquipTrack,
+  onPurchaseTrack,
   onUpdateCoins,
 }) => {
   const [isMissionsOpen, setIsMissionsOpen] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
+  const [isTrackShopOpen, setIsTrackShopOpen] = useState(false);
   const [isDailyRewardsOpen, setIsDailyRewardsOpen] = useState(false);
   const activePowerUp = stats.activePowerUp;
 
@@ -84,6 +93,9 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
         notifications={stats.activeNotifications || []}
         onDismiss={onDismissNotification}
       />
+
+      {/* PERSISTENT CORNER SOUND TOGGLE (Visible across all game screens & modes) */}
+      <SoundToggle variant="corner" />
 
       {/* 1. TOP IN-GAME HUD (Visible during active play or pause) */}
       {(state === 'PLAYING' || state === 'PAUSED') && (
@@ -162,8 +174,8 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
             </div>
           )}
 
-          {/* Action buttons (Daily Rewards, Missions, Shop, Sound, Pause) */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Action buttons (Daily Rewards, Missions, Shop, Pause) with spacing for corner SoundToggle */}
+          <div className="flex items-center gap-1.5 sm:gap-2 mr-24 sm:mr-32">
             <button
               onClick={() => {
                 soundManager.playClick();
@@ -206,11 +218,14 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
             </button>
 
             <button
-              onClick={onToggleSound}
-              aria-label={soundEnabled ? 'Mute audio' : 'Unmute audio'}
+              onClick={() => {
+                soundManager.playClick();
+                setIsTrackShopOpen(true);
+              }}
+              aria-label="Open Track Workshop & Realms"
               className="p-1.5 sm:p-2 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-white transition-colors cursor-pointer"
             >
-              {soundEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4 text-red-400" />}
+              <Compass className="w-4 h-4 text-cyan-300" />
             </button>
 
             {state === 'PLAYING' && (
@@ -233,6 +248,7 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
           soundEnabled={soundEnabled}
           onStart={onStart}
           onOpenShop={() => setIsShopOpen(true)}
+          onOpenTrackShop={() => setIsTrackShopOpen(true)}
           onOpenMissions={() => setIsMissionsOpen(true)}
           onOpenDailyRewards={() => setIsDailyRewardsOpen(true)}
           onToggleSound={onToggleSound}
@@ -284,6 +300,17 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
               >
                 <ShoppingBag className="w-4 h-4 text-amber-400" />
                 <span>Armory & Skins</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  soundManager.playClick();
+                  setIsTrackShopOpen(true);
+                }}
+                className="w-full py-2.5 px-4 rounded-xl font-medium text-xs text-cyan-300 bg-slate-950/60 hover:bg-slate-800 border border-cyan-800/50 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Compass className="w-4 h-4 text-cyan-400" />
+                <span>Track Workshop & Realms</span>
               </button>
 
               <button
@@ -369,17 +396,28 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
               </div>
             </div>
 
-            {/* Missions & Armory Buttons on Game Over */}
-            <div className="grid grid-cols-2 gap-2 mb-3">
+            {/* Missions, Armory & Track Shop Buttons on Game Over */}
+            <div className="grid grid-cols-3 gap-2 mb-3">
               <button
                 onClick={() => {
                   soundManager.playClick();
                   setIsShopOpen(true);
                 }}
-                className="py-2.5 px-3 rounded-xl font-semibold text-xs text-amber-300 bg-amber-950/40 hover:bg-amber-950/70 border border-amber-800/60 hover:border-amber-400/60 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                className="py-2 px-2.5 rounded-xl font-semibold text-[11px] sm:text-xs text-amber-300 bg-amber-950/40 hover:bg-amber-950/70 border border-amber-800/60 hover:border-amber-400/60 transition-all flex items-center justify-center gap-1 cursor-pointer truncate"
               >
-                <ShoppingBag className="w-3.5 h-3.5 text-amber-400" />
-                <span>Armory Shop</span>
+                <ShoppingBag className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span>Armory</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  soundManager.playClick();
+                  setIsTrackShopOpen(true);
+                }}
+                className="py-2 px-2.5 rounded-xl font-semibold text-[11px] sm:text-xs text-sky-300 bg-sky-950/40 hover:bg-sky-950/70 border border-sky-800/60 hover:border-sky-400/60 transition-all flex items-center justify-center gap-1 cursor-pointer truncate"
+              >
+                <Compass className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                <span>Realms</span>
               </button>
 
               <button
@@ -387,12 +425,12 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
                   soundManager.playClick();
                   setIsMissionsOpen(true);
                 }}
-                className="py-2.5 px-3 rounded-xl font-semibold text-xs text-cyan-300 bg-cyan-950/40 hover:bg-cyan-950/70 border border-cyan-800/60 hover:border-cyan-400/60 transition-all flex items-center justify-center gap-1.5 cursor-pointer relative"
+                className="py-2 px-2.5 rounded-xl font-semibold text-[11px] sm:text-xs text-cyan-300 bg-cyan-950/40 hover:bg-cyan-950/70 border border-cyan-800/60 hover:border-cyan-400/60 transition-all flex items-center justify-center gap-1 cursor-pointer relative truncate"
               >
-                <Award className="w-3.5 h-3.5 text-cyan-400" />
+                <Award className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
                 <span>Missions</span>
                 {unclaimedMissionsCount > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black">
+                  <span className="px-1 py-0.2 rounded-full bg-amber-400 text-slate-950 text-[9px] font-black">
                     +{unclaimedMissionsCount}
                   </span>
                 )}
@@ -448,7 +486,18 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
         onPurchaseSkin={onPurchaseSkin}
       />
 
-      {/* 5. 24H DAILY REWARDS MODAL */}
+      {/* 5. TRACK WORKSHOP & REALMS SHOP MODAL */}
+      <TrackShopModal
+        isOpen={isTrackShopOpen}
+        onClose={() => setIsTrackShopOpen(false)}
+        totalCoins={stats.totalCoins}
+        equippedTrackId={stats.equippedTrackId || 'default'}
+        unlockedTracks={stats.unlockedTracks || ['default']}
+        onEquipTrack={onEquipTrack}
+        onPurchaseTrack={onPurchaseTrack}
+      />
+
+      {/* 6. 24H DAILY REWARDS MODAL */}
       <DailyRewardsModal
         isOpen={isDailyRewardsOpen}
         onClose={() => setIsDailyRewardsOpen(false)}

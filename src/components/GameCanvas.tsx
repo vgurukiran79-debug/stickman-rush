@@ -9,6 +9,7 @@ import { VIRTUAL_WIDTH, VIRTUAL_HEIGHT } from '../game/constants.ts';
 import { GameEngine } from '../game/gameEngine.ts';
 import { GameState, GameStats } from '../types/game.ts';
 import { SkinId } from '../types/skin.ts';
+import { TrackId } from '../types/track.ts';
 import { UIOverlay } from './UIOverlay.tsx';
 import { soundManager } from '../audio/soundManager.ts';
 
@@ -32,6 +33,8 @@ export const GameCanvas: React.FC = () => {
     runActiveTime: 0,
     equippedSkinId: 'classic',
     unlockedSkins: ['classic'],
+    equippedTrackId: 'default',
+    unlockedTracks: ['default'],
     canClaimDailyReward: false,
   });
   const [soundEnabled, setSoundEnabled] = useState<boolean>(soundManager.getSoundEnabled());
@@ -67,6 +70,14 @@ export const GameCanvas: React.FC = () => {
     };
   }, []);
 
+  // Subscribe to live audio state changes across the application
+  useEffect(() => {
+    const unsubscribe = soundManager.subscribe((enabled) => {
+      setSoundEnabled(enabled);
+    });
+    return unsubscribe;
+  }, []);
+
   // Desktop keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -100,6 +111,13 @@ export const GameCanvas: React.FC = () => {
         e.preventDefault();
         if (e.repeat) return;
         engine.togglePause();
+      }
+
+      // Audio Toggle: KeyM
+      if (code === 'KeyM' || key === 'm' || key === 'M') {
+        e.preventDefault();
+        if (e.repeat) return;
+        soundManager.toggleMute();
       }
     };
 
@@ -222,6 +240,14 @@ export const GameCanvas: React.FC = () => {
     engineRef.current?.purchaseSkin(skinId);
   }, []);
 
+  const handleEquipTrack = useCallback((trackId: TrackId) => {
+    engineRef.current?.equipTrack(trackId);
+  }, []);
+
+  const handlePurchaseTrack = useCallback((trackId: TrackId) => {
+    engineRef.current?.purchaseTrack(trackId);
+  }, []);
+
   const handleUpdateCoins = useCallback((newTotalCoins: number) => {
     engineRef.current?.updateCoins(newTotalCoins);
   }, []);
@@ -256,6 +282,8 @@ export const GameCanvas: React.FC = () => {
             onDismissNotification={handleDismissNotification}
             onEquipSkin={handleEquipSkin}
             onPurchaseSkin={handlePurchaseSkin}
+            onEquipTrack={handleEquipTrack}
+            onPurchaseTrack={handlePurchaseTrack}
             onUpdateCoins={handleUpdateCoins}
           />
         </div>

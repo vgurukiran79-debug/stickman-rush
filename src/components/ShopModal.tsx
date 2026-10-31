@@ -22,6 +22,7 @@ import { Skin, SkinId, SKINS_CATALOG } from '../types/skin.ts';
 import { PlayerPose } from '../types/game.ts';
 import { drawStickman } from '../game/stickmanRenderer.ts';
 import { soundManager } from '../audio/soundManager.ts';
+import { SoundToggle } from './SoundToggle.tsx';
 
 interface ShopModalProps {
   isOpen: boolean;
@@ -204,6 +205,8 @@ export const ShopModal: React.FC<ShopModalProps> = ({
               <Coins className="w-3.5 h-3.5 text-amber-400" />
               <span>{totalCoins}</span>
             </div>
+
+            <SoundToggle variant="compact" />
 
             <button
               onClick={() => {

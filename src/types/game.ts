@@ -5,6 +5,7 @@
 
 import { Mission, Achievement, MissionNotification } from './missions.ts';
 import { SkinId } from './skin.ts';
+import { TrackId } from './track.ts';
 
 export type GameState = 'START' | 'PLAYING' | 'PAUSED' | 'GAMEOVER';
 
@@ -102,5 +103,7 @@ export interface GameStats {
   runActiveTime: number;
   equippedSkinId: SkinId;
   unlockedSkins: SkinId[];
+  equippedTrackId: TrackId;
+  unlockedTracks: TrackId[];
   canClaimDailyReward: boolean;
 }
