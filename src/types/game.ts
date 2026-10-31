@@ -102,4 +102,5 @@ export interface GameStats {
   runActiveTime: number;
   equippedSkinId: SkinId;
   unlockedSkins: SkinId[];
+  canClaimDailyReward: boolean;
 }

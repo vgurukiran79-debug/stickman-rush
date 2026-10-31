@@ -32,6 +32,7 @@ export const GameCanvas: React.FC = () => {
     runActiveTime: 0,
     equippedSkinId: 'classic',
     unlockedSkins: ['classic'],
+    canClaimDailyReward: false,
   });
   const [soundEnabled, setSoundEnabled] = useState<boolean>(soundManager.getSoundEnabled());
 
@@ -221,6 +222,10 @@ export const GameCanvas: React.FC = () => {
     engineRef.current?.purchaseSkin(skinId);
   }, []);
 
+  const handleUpdateCoins = useCallback((newTotalCoins: number) => {
+    engineRef.current?.updateCoins(newTotalCoins);
+  }, []);
+
   return (
     <div className="relative w-full h-[100dvh] flex flex-col justify-between items-center bg-slate-950 select-none overflow-hidden touch-none p-0 sm:p-2">
       {/* Centered Game Viewport Container */}
@@ -251,6 +256,7 @@ export const GameCanvas: React.FC = () => {
             onDismissNotification={handleDismissNotification}
             onEquipSkin={handleEquipSkin}
             onPurchaseSkin={handlePurchaseSkin}
+            onUpdateCoins={handleUpdateCoins}
           />
         </div>
       </div>

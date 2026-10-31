@@ -22,6 +22,7 @@ import {
   Target,
   Award,
   ShoppingBag,
+  Gift,
 } from 'lucide-react';
 import { GameState, GameStats } from '../types/game.ts';
 import { SkinId, SKINS_CATALOG } from '../types/skin.ts';
@@ -29,6 +30,8 @@ import { soundManager } from '../audio/soundManager.ts';
 import { MissionsModal } from './MissionsModal.tsx';
 import { ShopModal } from './ShopModal.tsx';
 import { NotificationToast } from './NotificationToast.tsx';
+import { MainMenu } from './MainMenu.tsx';
+import { DailyRewardsModal } from './DailyRewardsModal.tsx';
 
 interface UIOverlayProps {
   state: GameState;
@@ -47,6 +50,7 @@ interface UIOverlayProps {
   onDismissNotification: (id: string) => void;
   onEquipSkin: (skinId: SkinId) => void;
   onPurchaseSkin: (skinId: SkinId) => void;
+  onUpdateCoins: (newTotalCoins: number) => void;
 }
 
 export const UIOverlay: React.FC<UIOverlayProps> = ({
@@ -63,9 +67,11 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
   onDismissNotification,
   onEquipSkin,
   onPurchaseSkin,
+  onUpdateCoins,
 }) => {
   const [isMissionsOpen, setIsMissionsOpen] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
+  const [isDailyRewardsOpen, setIsDailyRewardsOpen] = useState(false);
   const activePowerUp = stats.activePowerUp;
 
   const unclaimedMissionsCount = (stats.missions || []).filter((m) => m.completed && !m.claimed).length;
@@ -156,8 +162,22 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
             </div>
           )}
 
-          {/* Action buttons (Missions, Sound, Pause) */}
+          {/* Action buttons (Daily Rewards, Missions, Shop, Sound, Pause) */}
           <div className="flex items-center gap-1.5 sm:gap-2">
+            <button
+              onClick={() => {
+                soundManager.playClick();
+                setIsDailyRewardsOpen(true);
+              }}
+              aria-label="Open Daily Rewards"
+              className="relative p-1.5 sm:p-2 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-white transition-colors cursor-pointer"
+            >
+              <Gift className="w-4 h-4 text-amber-300" />
+              {stats.canClaimDailyReward && (
+                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping" />
+              )}
+            </button>
+
             <button
               onClick={() => {
                 soundManager.playClick();
@@ -206,165 +226,17 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
         </header>
       )}
 
-      {/* 2. RESPONSIVE FULL-SCREEN MODALS (Start Screen, Pause Screen, Game Over Screen) */}
-      {/* START SCREEN / LANDING PAGE */}
+      {/* 2. MAIN MENU SCREEN V2 REDESIGN */}
       {state === 'START' && (
-        <div className="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-          <div className="relative w-full max-w-md my-auto bg-slate-900/95 border border-slate-700/80 rounded-2xl p-4 sm:p-6 shadow-2xl shadow-cyan-950/30 text-center animate-in fade-in zoom-in-95 duration-200">
-            {/* Title & Tagline */}
-            <div className="mb-4 sm:mb-5">
-              <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-cyan-400/10 border border-cyan-400/30 text-cyan-300 text-[11px] font-semibold mb-2">
-                <Sparkles className="w-3 h-3" />
-                CYBERPUNK RUNNER
-              </div>
-              <h1 className="text-3xl sm:text-5xl font-black font-display tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-sky-300 to-violet-400 drop-shadow uppercase leading-tight">
-                Stickman Rush
-              </h1>
-              <p className="mt-1.5 text-xs sm:text-sm text-slate-300 font-medium">
-                Dodge hazards · Grab gold coins · Complete missions
-              </p>
-            </div>
-
-            {/* High Score & Total Coins Strip */}
-            <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-4 sm:mb-5 p-2.5 sm:p-3 bg-slate-950/60 rounded-xl border border-slate-800">
-              <div className="flex flex-col items-center justify-center p-1.5">
-                <span className="flex items-center gap-1 text-[11px] sm:text-xs text-slate-400 font-medium">
-                  <Trophy className="w-3.5 h-3.5 text-amber-400" />
-                  Best Score
-                </span>
-                <span className="text-lg sm:text-xl font-bold font-mono tabular-nums text-white mt-0.5">
-                  {stats.bestDistance} <span className="text-xs text-slate-400 font-normal">m</span>
-                </span>
-              </div>
-              <div className="flex flex-col items-center justify-center p-1.5 border-l border-slate-800">
-                <span className="flex items-center gap-1 text-[11px] sm:text-xs text-slate-400 font-medium">
-                  <Coins className="w-3.5 h-3.5 text-amber-400" />
-                  Coin Bank
-                </span>
-                <span className="text-lg sm:text-xl font-bold font-mono tabular-nums text-amber-300 mt-0.5">
-                  {stats.totalCoins}
-                </span>
-              </div>
-            </div>
-
-            {/* Primary Action Button (PLAY NOW) */}
-            <button
-              onClick={() => {
-                soundManager.playClick();
-                onStart();
-              }}
-              className="w-full py-3 sm:py-3.5 px-6 rounded-xl font-display font-bold text-base sm:text-lg text-slate-950 bg-gradient-to-r from-cyan-400 to-cyan-300 hover:from-cyan-300 hover:to-sky-200 active:scale-98 transition-all shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 cursor-pointer mb-3"
-            >
-              <Play className="w-5 h-5 fill-slate-950" />
-              PLAY NOW
-            </button>
-
-            {/* Missions & Armory Shop Navigation Buttons */}
-            <div className="grid grid-cols-2 gap-2 mb-3">
-              <button
-                onClick={() => {
-                  soundManager.playClick();
-                  setIsShopOpen(true);
-                }}
-                className="py-2.5 px-3 rounded-xl font-semibold text-xs sm:text-sm text-amber-300 bg-amber-950/40 hover:bg-amber-950/70 border border-amber-800/60 hover:border-amber-400/60 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
-              >
-                <ShoppingBag className="w-4 h-4 text-amber-400" />
-                <span>Armory Shop</span>
-                <span
-                  className="w-2 h-2 rounded-full inline-block shadow-sm"
-                  style={{ backgroundColor: equippedSkin.accentColor }}
-                  title={`Equipped: ${equippedSkin.name}`}
-                />
-              </button>
-
-              <button
-                onClick={() => {
-                  soundManager.playClick();
-                  setIsMissionsOpen(true);
-                }}
-                className="py-2.5 px-3 rounded-xl font-semibold text-xs sm:text-sm text-cyan-300 bg-cyan-950/40 hover:bg-cyan-950/70 border border-cyan-800/60 hover:border-cyan-400/60 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-sm relative"
-              >
-                <Award className="w-4 h-4 text-cyan-400" />
-                <span>Missions</span>
-                {unclaimedMissionsCount > 0 && (
-                  <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black">
-                    {unclaimedMissionsCount}
-                  </span>
-                )}
-              </button>
-            </div>
-
-            {/* Power-Ups Guide */}
-            <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mb-3 text-left">
-              <div className="p-1.5 sm:p-2 rounded-xl bg-cyan-950/40 border border-cyan-800/40 flex flex-col items-center text-center">
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-cyan-500/20 flex items-center justify-center text-cyan-300 mb-0.5 sm:mb-1 border border-cyan-400/30">
-                  <Shield className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                </div>
-                <span className="text-[10px] sm:text-[11px] font-bold text-cyan-200">Shield</span>
-                <span className="text-[9px] text-slate-400 leading-tight">Absorbs 1 hit</span>
-              </div>
-
-              <div className="p-1.5 sm:p-2 rounded-xl bg-purple-950/40 border border-purple-800/40 flex flex-col items-center text-center">
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-300 mb-0.5 sm:mb-1 border border-purple-400/30">
-                  <Magnet className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                </div>
-                <span className="text-[10px] sm:text-[11px] font-bold text-purple-200">Magnet</span>
-                <span className="text-[9px] text-slate-400 leading-tight">Attracts coins</span>
-              </div>
-
-              <div className="p-1.5 sm:p-2 rounded-xl bg-amber-950/40 border border-amber-800/40 flex flex-col items-center text-center">
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-300 mb-0.5 sm:mb-1 border border-amber-400/30">
-                  <Zap className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                </div>
-                <span className="text-[10px] sm:text-[11px] font-bold text-amber-200">Speed</span>
-                <span className="text-[9px] text-slate-400 leading-tight">Hyper surge</span>
-              </div>
-            </div>
-
-            {/* Controls Guide (Responsive for Mobile & Desktop) */}
-            <div className="text-left bg-slate-950/50 p-3 sm:p-4 rounded-xl border border-slate-800/80 mb-3">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold flex items-center gap-1.5">
-                  <Smartphone className="w-3.5 h-3.5 text-cyan-400" />
-                  Phone Controls
-                </span>
-                <span className="text-[10px] text-slate-500 flex items-center gap-1">
-                  <Keyboard className="w-3 h-3" />
-                  Desktop Ready
-                </span>
-              </div>
-
-              <div className="space-y-1.5 text-xs text-slate-300">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Leap over crates & spikes:</span>
-                  <span className="font-semibold text-cyan-300 bg-cyan-950/40 px-2 py-0.5 rounded border border-cyan-800/40 text-[11px]">
-                    JUMP (Right Thumb)
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Glide under hanging beams:</span>
-                  <span className="font-semibold text-purple-300 bg-purple-950/40 px-2 py-0.5 rounded border border-purple-800/40 text-[11px]">
-                    SLIDE (Left Thumb)
-                  </span>
-                </div>
-                <div className="text-[11px] text-slate-400 pt-1 border-t border-slate-800/60">
-                  Swipe up/down anywhere on screen also jumps and slides!
-                </div>
-              </div>
-            </div>
-
-            {/* Sound Toggle */}
-            <div className="flex items-center justify-center">
-              <button
-                onClick={onToggleSound}
-                className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors cursor-pointer py-1 px-3 rounded-lg hover:bg-slate-800/60"
-              >
-                {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5 text-red-400" />}
-                <span>Sound: {soundEnabled ? 'Enabled' : 'Muted'}</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <MainMenu
+          stats={stats}
+          soundEnabled={soundEnabled}
+          onStart={onStart}
+          onOpenShop={() => setIsShopOpen(true)}
+          onOpenMissions={() => setIsMissionsOpen(true)}
+          onOpenDailyRewards={() => setIsDailyRewardsOpen(true)}
+          onToggleSound={onToggleSound}
+        />
       )}
 
       {/* PAUSE SCREEN MODAL */}
@@ -574,6 +446,14 @@ export const UIOverlay: React.FC<UIOverlayProps> = ({
         unlockedSkins={stats.unlockedSkins || ['classic']}
         onEquipSkin={onEquipSkin}
         onPurchaseSkin={onPurchaseSkin}
+      />
+
+      {/* 5. 24H DAILY REWARDS MODAL */}
+      <DailyRewardsModal
+        isOpen={isDailyRewardsOpen}
+        onClose={() => setIsDailyRewardsOpen(false)}
+        totalCoins={stats.totalCoins}
+        onClaimSuccess={(newTotal) => onUpdateCoins(newTotal)}
       />
     </>
   );

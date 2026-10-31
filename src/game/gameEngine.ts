@@ -23,6 +23,7 @@ import { ParticleManager } from './particleManager.ts';
 import { WorldRenderer } from './renderer.ts';
 import { MissionManager } from './missionManager.ts';
 import { soundManager } from '../audio/soundManager.ts';
+import { dailyRewardManager } from './dailyRewardManager.ts';
 
 export class GameEngine {
   private canvas: HTMLCanvasElement;
@@ -166,7 +167,18 @@ export class GameEngine {
       runActiveTime: Math.floor(this.runActiveTime),
       equippedSkinId: skinManager.getEquippedSkinId(),
       unlockedSkins: skinManager.getUnlockedSkinIds(),
+      canClaimDailyReward: dailyRewardManager.getStatus().canClaim,
     };
+  }
+
+  public updateCoins(newTotalCoins: number) {
+    this.totalCoins = newTotalCoins;
+    try {
+      localStorage.setItem(STORAGE_KEY_TOTAL_COINS, this.totalCoins.toString());
+    } catch {
+      // Graceful fallback
+    }
+    this.notifyStats();
   }
 
   public equipSkin(skinId: SkinId): boolean {
